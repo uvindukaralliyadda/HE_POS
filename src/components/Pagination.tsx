@@ -1,0 +1,8 @@
+import { Icon } from './Icon';
+
+export function Pagination({ page, pageCount, total, pageSize, onPageChange }: { page: number; pageCount: number; total: number; pageSize: number; onPageChange: (page: number) => void }) {
+  if (total <= pageSize) return total === 0 ? null : <div className="border-t border-slate-100 px-5 py-4 text-xs text-slate-500">Showing 1–{total} of {total} records</div>;
+  const first = (page - 1) * pageSize + 1;
+  const last = Math.min(page * pageSize, total);
+  return <div className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between"><span>Showing {first}–{last} of {total} records</span><div className="flex flex-wrap items-center gap-1"><button type="button" disabled={page === 1} onClick={() => onPageChange(page - 1)} className="flex min-h-9 items-center gap-1 rounded-lg border border-slate-200 px-2.5 font-semibold disabled:cursor-not-allowed disabled:opacity-40"><Icon name="ChevronRight" className="h-3.5 w-3.5 rotate-180" /> Previous</button>{Array.from({ length: pageCount }, (_, index) => index + 1).map((number) => <button type="button" key={number} onClick={() => onPageChange(number)} className={`min-h-9 min-w-9 rounded-lg border px-2 font-semibold ${number === page ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>{number}</button>)}<button type="button" disabled={page === pageCount} onClick={() => onPageChange(page + 1)} className="flex min-h-9 items-center gap-1 rounded-lg border border-slate-200 px-2.5 font-semibold disabled:cursor-not-allowed disabled:opacity-40">Next <Icon name="ChevronRight" className="h-3.5 w-3.5" /></button></div></div>;
+}

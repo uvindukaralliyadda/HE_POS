@@ -22,7 +22,7 @@ export function SuppliersPage() {
         </TabButton>
       </div>
 
-      <div key={tab} className="animate-fade-in">
+      <div key={tab} className="tab-content-enter">
         {tab === 'registration' ? <SupplierRegistrationTab /> : <SupplierPOsTab />}
       </div>
     </div>
@@ -43,7 +43,7 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors ${
+      className={`relative flex items-center gap-2 px-4 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] ${
         active ? 'text-brand-600' : 'text-slate-500 hover:text-slate-700'
       }`}
     >

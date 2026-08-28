@@ -15,10 +15,26 @@ import { Card, CardHeader, StatCard, Badge, ChartCard, Legend, toneClasses } fro
 import { PeriodSelector, ChartViewControl, DashboardHeader } from '@/components/Controls';
 import { ComboChart, DonutChart, GroupedBarChart, MaterialBarChart, TruckBarChart } from '@/components/Charts';
 import { Icon } from '@/components/Icon';
+import { useApp } from '@/data/appState';
 
 export function AdminDashboard() {
   const [period, setPeriod] = useState<PeriodKey>('month');
   const [chartView, setChartView] = useState<ChartView>('weekly');
+  const { supplierVouchers, clientInvoices } = useApp();
+  const paidBySupplier = supplierVouchers.reduce<Record<string, number>>((totals, voucher) => {
+    if (voucher.paymentStatus === 'Paid') totals[voucher.supplierName] = (totals[voucher.supplierName] ?? 0) + voucher.grandTotal;
+    return totals;
+  }, {});
+  const supplierPayments = SUPPLIER_PAYMENTS.map((supplier) => ({
+    ...supplier,
+    paid: (paidBySupplier[supplier.supplier] ?? 0) / 1_000_000,
+    outstanding: Math.max(supplier.payable - ((paidBySupplier[supplier.supplier] ?? 0) / 1_000_000), 0),
+  }));
+  const receivedInvoiceTotal = clientInvoices.reduce((total, invoice) => total + (invoice.paymentStatus === 'Received' ? invoice.totalAmount : 0), 0);
+  const clientReceivables = CLIENT_RECEIVABLES.map((client) => {
+    const received = clientInvoices.filter((invoice) => invoice.clientName === client.client).reduce((total, invoice) => total + (invoice.paymentStatus === 'Received' ? invoice.totalAmount : 0), 0) / 1_000_000;
+    return { ...client, received, outstanding: Math.max(client.invoiced - received, 0) };
+  });
 
   return (
     <div className="space-y-5">
@@ -89,7 +105,7 @@ export function AdminDashboard() {
             <div className="grid w-full grid-cols-2 gap-3 border-t border-slate-100 pt-4">
               <Stat label="No. of Invoices" value={String(INVOICE_STATUS.stats.count)} />
               <Stat label="Total Value" value={INVOICE_STATUS.stats.totalValue} />
-              <Stat label="Received" value={INVOICE_STATUS.stats.received} />
+              <Stat label="Received" value={`LKR ${(receivedInvoiceTotal / 1_000_000).toFixed(2)}M`} />
               <Stat label="Outstanding" value={INVOICE_STATUS.stats.outstanding} />
             </div>
           </div>
@@ -109,7 +125,7 @@ export function AdminDashboard() {
             />
           </div>
           <GroupedBarChart
-            items={CLIENT_RECEIVABLES.map((c) => ({
+            items={clientReceivables.map((c) => ({
               label: c.client,
               values: [
                 { value: c.invoiced, color: '#93c5fd', name: 'Invoiced' },
@@ -132,7 +148,7 @@ export function AdminDashboard() {
             />
           </div>
           <GroupedBarChart
-            items={SUPPLIER_PAYMENTS.map((s) => ({
+            items={supplierPayments.map((s) => ({
               label: s.supplier,
               values: [
                 { value: s.payable, color: '#bfdbfe', name: 'Payable' },

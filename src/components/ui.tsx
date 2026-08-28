@@ -70,7 +70,7 @@ export function StatCard({
       </div>
       <div className="mt-3">
         <div className="text-xs font-medium text-slate-500">{label}</div>
-        <div className="mt-0.5 text-xl font-bold text-slate-800">{value}</div>
+        <div className="mt-0.5 text-xl font-bold text-slate-800 count-enter">{value}</div>
       </div>
     </div>
   );

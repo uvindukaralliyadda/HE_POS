@@ -230,6 +230,7 @@ function SupplierPOForm({
                       type="number"
                       min={0}
                       value={line.materialPrice || ''}
+                      disabled={line.priceMode === 'transport'}
                       onChange={(e) => updateLine(line.id, { materialPrice: parseFloat(e.target.value) || 0 })}
                       placeholder="0.00"
                       className="form-input text-right"
@@ -240,6 +241,7 @@ function SupplierPOForm({
                       type="number"
                       min={0}
                       value={line.transportPrice || ''}
+                      disabled={line.priceMode === 'material'}
                       onChange={(e) => updateLine(line.id, { transportPrice: parseFloat(e.target.value) || 0 })}
                       placeholder="0.00"
                       className="form-input text-right"
@@ -330,6 +332,7 @@ function SupplierPOForm({
                         type="number"
                         min={0}
                         value={line.materialPrice || ''}
+                        disabled={line.priceMode === 'transport'}
                         onChange={(e) => updateLine(line.id, { materialPrice: parseFloat(e.target.value) || 0 })}
                         placeholder="0.00"
                         className="form-input text-right"
@@ -341,6 +344,7 @@ function SupplierPOForm({
                         type="number"
                         min={0}
                         value={line.transportPrice || ''}
+                        disabled={line.priceMode === 'material'}
                         onChange={(e) => updateLine(line.id, { transportPrice: parseFloat(e.target.value) || 0 })}
                         placeholder="0.00"
                         className="form-input text-right"

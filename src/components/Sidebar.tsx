@@ -1,5 +1,6 @@
 import { NAV_ITEMS, type Role } from '@/data/mockData';
 import { Icon } from './Icon';
+import logo from '@/HE.webp';
 
 export function Sidebar({
   role,
@@ -34,13 +35,13 @@ export function Sidebar({
       >
         {/* Logo */}
         <div className={`flex h-16 items-center gap-2.5 border-b border-slate-100 px-4 ${collapsed ? 'lg:justify-center lg:px-2' : ''}`}>
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white">
-            <Icon name="LayoutDashboard" className="h-5 w-5" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
+            <img src={logo} alt="Harith Engineering" className="h-full w-full object-contain" />
           </div>
           {!collapsed && (
             <div className="lg:block">
-              <div className="text-sm font-bold leading-tight text-slate-800">POS Manager</div>
-              <div className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Enterprise</div>
+              <div className="text-sm font-bold leading-tight text-slate-800">Material Supply Tracker</div>
+              <div className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Harith Engineering</div>
             </div>
           )}
         </div>

@@ -36,6 +36,7 @@ import {
   UserPlus,
   Warehouse,
   PlusCircle,
+  Printer,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -77,6 +78,7 @@ const ICONS: Record<string, LucideIcon> = {
   UserPlus,
   Warehouse,
   PlusCircle,
+  Printer,
 };
 
 export function Icon({ name, className }: { name: string; className?: string }) {

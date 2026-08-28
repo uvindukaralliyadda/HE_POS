@@ -10,6 +10,10 @@ import { PortDashboard } from '@/dashboards/PortDashboard';
 import { ClientsPage } from '@/pages/ClientsPage';
 import { SuppliersPage } from '@/pages/SuppliersPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { SupplierVouchersPage } from '@/pages/SupplierVouchersPage';
+import { InvoicesPage } from '@/pages/InvoicesPage';
+import { UsersPage } from '@/pages/UsersPage';
+import { LedgerPage } from '@/pages/LedgerPage';
 
 export default function App() {
   const [role, setRole] = useState<Role>('Admin');
@@ -26,6 +30,11 @@ export default function App() {
     if (activeId === 'clients') return <ClientsPage />;
     if (activeId === 'suppliers') return <SuppliersPage />;
     if (activeId === 'settings') return <SettingsPage />;
+    if (activeId === 'vouchers') return <SupplierVouchersPage />;
+    if (activeId === 'invoices') return <InvoicesPage />;
+    if (activeId === 'users') return role === 'Admin' ? <UsersPage /> : <PlaceholderView title="users" />;
+    if (activeId === 'ledger') return role === 'Admin' || role === 'Office Staff' ? <LedgerPage /> : <PlaceholderView title="ledger" />;
+    if (activeId === 'port-ops') return <PortDashboard role={role} />;
     if (activeId !== 'dashboard') return <PlaceholderView title={activeId} />;
     switch (role) {
       case 'Admin':

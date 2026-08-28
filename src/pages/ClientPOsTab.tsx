@@ -67,6 +67,7 @@ function ClientPOForm({
   onCancel: () => void;
 }) {
   const [clientId, setClientId] = useState('');
+  const [site, setSite] = useState('');
   const [poNumber, setPoNumber] = useState('');
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [lines, setLines] = useState<POLineItem[]>([emptyLine()]);
@@ -89,6 +90,7 @@ function ClientPOForm({
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!clientId) errs.client = 'Please select a client';
+    if (!site.trim()) errs.site = 'Site is required';
     if (!poNumber.trim()) errs.poNumber = 'PO number is required';
     if (lines.length === 0) errs.lines = 'Add at least one material';
     const invalidLines = lines.some((l) => !l.description || l.quantity <= 0 || l.unitPrice <= 0);
@@ -100,6 +102,7 @@ function ClientPOForm({
     onSubmit({
       poNumber: poNumber.trim(),
       clientId,
+      site: site.trim(),
       date,
       items: lines,
       ssclPercent,
@@ -113,7 +116,7 @@ function ClientPOForm({
       {/* PO header fields */}
       <Card className="animate-fade-up">
         <CardHeader title="Create Client PO" />
-        <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-4">
           <div>
             <label className="mb-1.5 block text-xs font-semibold text-slate-600">
               Client <span className="text-rose-500">*</span>
@@ -127,6 +130,19 @@ function ClientPOForm({
               ))}
             </select>
             {errors.client && <p className="mt-1 text-[11px] text-rose-500">{errors.client}</p>}
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-slate-600">
+              Site <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={site}
+              onChange={(e) => setSite(e.target.value)}
+              placeholder="e.g. Colombo 03 Project"
+              className="form-input"
+            />
+            {errors.site && <p className="mt-1 text-[11px] text-rose-500">{errors.site}</p>}
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-semibold text-slate-600">
@@ -394,6 +410,7 @@ function ClientPOList() {
             <tr className="border-b border-slate-100 text-left text-xs text-slate-400">
               <th className="px-5 py-3 font-semibold">PO Number</th>
               <th className="px-5 py-3 font-semibold">Client</th>
+              <th className="px-5 py-3 font-semibold">Site</th>
               <th className="px-5 py-3 font-semibold">Date</th>
               <th className="px-5 py-3 text-right font-semibold">PO Value</th>
               <th className="hidden px-5 py-3 text-right font-semibold md:table-cell">Required Load</th>
@@ -416,6 +433,7 @@ function ClientPOList() {
                   >
                     <td className="px-5 py-3 font-semibold text-slate-700">{po.poNumber}</td>
                     <td className="px-5 py-3 text-slate-600">{clientName(po.clientId)}</td>
+                    <td className="px-5 py-3 text-slate-600">{po.site}</td>
                     <td className="px-5 py-3 text-slate-500">{po.date}</td>
                     <td className="px-5 py-3 text-right font-bold text-slate-700">{formatLKR(totals.grandTotal)}</td>
                     <td className="hidden px-5 py-3 text-right text-slate-500 md:table-cell">{formatMT(requiredLoad)}</td>
@@ -437,7 +455,7 @@ function ClientPOList() {
                   </tr>
                     {isOpen && (
                     <tr key={`${po.id}-detail`} className="animate-fade-in">
-                      <td colSpan={8} className="bg-slate-50/50 px-5 py-4">
+                      <td colSpan={9} className="bg-slate-50/50 px-5 py-4">
                         <div className="rounded-lg border border-slate-200 bg-white p-4">
                           <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
                             Material Breakdown
