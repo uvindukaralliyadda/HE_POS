@@ -1,0 +1,89 @@
+import { useState } from 'react';
+import type { Role } from '@/data/mockData';
+import { AppProvider } from '@/data/appState';
+import { Sidebar } from '@/components/Sidebar';
+import { Topbar } from '@/components/Topbar';
+import { ToastContainer } from '@/components/Toast';
+import { AdminDashboard } from '@/dashboards/AdminDashboard';
+import { OfficeDashboard } from '@/dashboards/OfficeDashboard';
+import { PortDashboard } from '@/dashboards/PortDashboard';
+import { ClientsPage } from '@/pages/ClientsPage';
+import { SuppliersPage } from '@/pages/SuppliersPage';
+import { SettingsPage } from '@/pages/SettingsPage';
+
+export default function App() {
+  const [role, setRole] = useState<Role>('Admin');
+  const [activeId, setActiveId] = useState('dashboard');
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleRoleChange = (r: Role) => {
+    setRole(r);
+    setActiveId('dashboard');
+  };
+
+  const renderContent = () => {
+    if (activeId === 'clients') return <ClientsPage />;
+    if (activeId === 'suppliers') return <SuppliersPage />;
+    if (activeId === 'settings') return <SettingsPage />;
+    if (activeId !== 'dashboard') return <PlaceholderView title={activeId} />;
+    switch (role) {
+      case 'Admin':
+        return <AdminDashboard />;
+      case 'Office Staff':
+        return <OfficeDashboard />;
+      case 'Port Staff':
+        return <PortDashboard />;
+    }
+  };
+
+  return (
+    <AppProvider>
+      <div className="flex min-h-screen bg-slate-50">
+        <Sidebar
+          role={role}
+          activeId={activeId}
+          onSelect={setActiveId}
+          collapsed={collapsed}
+          mobileOpen={mobileOpen}
+          onCloseMobile={() => setMobileOpen(false)}
+        />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Topbar
+            role={role}
+            activeId={activeId}
+            onToggleSidebar={() => setCollapsed((v) => !v)}
+            onOpenMobile={() => setMobileOpen(true)}
+            onRoleChange={handleRoleChange}
+          />
+          <main className="flex-1 overflow-x-hidden p-4 lg:p-6">
+            <div key={`${role}-${activeId}`} className="animate-fade-in">
+              {renderContent()}
+            </div>
+          </main>
+        </div>
+        <ToastContainer />
+      </div>
+    </AppProvider>
+  );
+}
+
+function PlaceholderView({ title }: { title: string }) {
+  const label = title
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+  return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50">
+        <svg className="h-8 w-8 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </div>
+      <h2 className="mt-4 text-lg font-bold text-slate-700">{label}</h2>
+      <p className="mt-1 max-w-sm text-sm text-slate-400">
+        This module is part of the full POS system. The prototype focuses on the dashboard foundation and role-based navigation.
+      </p>
+    </div>
+  );
+}
