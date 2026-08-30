@@ -8,17 +8,18 @@ import {
   TRUCK_ACTIVITY,
   SUPPLIER_PAYMENTS,
   RECENT_ACTIVITY,
-  type PeriodKey,
   type ChartView,
 } from '@/data/mockData';
 import { Card, CardHeader, StatCard, Badge, ChartCard, Legend, toneClasses } from '@/components/ui';
-import { PeriodSelector, ChartViewControl, DashboardHeader } from '@/components/Controls';
+import { ChartViewControl, DashboardWelcome } from '@/components/Controls';
 import { ComboChart, DonutChart, GroupedBarChart, MaterialBarChart, TruckBarChart } from '@/components/Charts';
 import { Icon } from '@/components/Icon';
 import { useApp } from '@/data/appState';
+import type { Role } from '@/data/mockData';
 
-export function AdminDashboard() {
-  const [period, setPeriod] = useState<PeriodKey>('month');
+export function AdminDashboard({ role = 'Admin' }: { role?: Role }) {
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [chartView, setChartView] = useState<ChartView>('weekly');
   const { supplierVouchers, clientInvoices } = useApp();
   const paidBySupplier = supplierVouchers.reduce<Record<string, number>>((totals, voucher) => {
@@ -38,9 +39,45 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-5">
-      <DashboardHeader title="Dashboard" subtitle="Overview of operational and financial performance">
-        <PeriodSelector value={period} onChange={setPeriod} />
-      </DashboardHeader>
+      <DashboardWelcome role={role} subtitle="Overview of operational and financial performance" />
+
+      <Card className="animate-fade-up">
+        <div className="p-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-700">Date Filter</h3>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-[1fr_1fr_auto]">
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-medium text-slate-500">Start Date</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(event) => setStartDate(event.target.value)}
+                className="form-input min-h-11"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-medium text-slate-500">End Date</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(event) => setEndDate(event.target.value)}
+                className="form-input min-h-11"
+              />
+            </label>
+            <div className="flex items-end">
+              <button
+                type="button"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700"
+              >
+                Apply / Filter
+              </button>
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* Row 1: Summary cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">

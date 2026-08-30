@@ -1,12 +1,12 @@
-import { OFFICE_CARDS, PENDING_TRUCK_VALIDATION } from '@/data/mockData';
+import { OFFICE_CARDS, PENDING_TRUCK_VALIDATION, type Role } from '@/data/mockData';
 import { Card, CardHeader, StatCard, Badge, toneClasses } from '@/components/ui';
-import { DashboardHeader } from '@/components/Controls';
+import { DashboardWelcome } from '@/components/Controls';
 import { Icon } from '@/components/Icon';
 
-export function OfficeDashboard() {
+export function OfficeDashboard({ role = 'Office Staff' }: { role?: Role }) {
   return (
     <div className="space-y-5">
-      <DashboardHeader title="Dashboard" subtitle="Operational overview and pending activities" />
+      <DashboardWelcome role={role} subtitle="Operational overview and pending activities" />
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">

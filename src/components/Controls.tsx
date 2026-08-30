@@ -1,4 +1,6 @@
-import { PERIODS, type PeriodKey } from '@/data/mockData';
+import { PERIODS, type PeriodKey, type Role } from '@/data/mockData';
+import { useApp } from '@/data/appState';
+import { UserAvatar } from '@/components/UserAvatar';
 
 export function PeriodSelector({
   value,
@@ -48,6 +50,35 @@ export function ChartViewControl({
           {o.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+export function DashboardWelcome({
+  role,
+  subtitle,
+  children,
+}: {
+  role: Role;
+  subtitle: string;
+  children?: React.ReactNode;
+}) {
+  const { users } = useApp();
+  const currentUser = users.find((user) => user.role === role && user.status === 'Active') ?? users.find((user) => user.role === role) ?? users[0];
+
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="w-full rounded-2xl border border-brand-100 bg-gradient-to-r from-brand-50 via-white to-sky-50 p-4 shadow-card animate-fade-up sm:p-5">
+        <div className="flex items-start gap-3">
+          <UserAvatar role={role} size="lg" className="shrink-0" />
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600">Dashboard</p>
+            <h2 className="mt-1 text-lg font-medium text-slate-800 sm:text-2xl">Welcome Back, {currentUser.fullName}</h2>
+            <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+          </div>
+        </div>
+      </div>
+      {children}
     </div>
   );
 }

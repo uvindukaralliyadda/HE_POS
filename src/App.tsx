@@ -38,11 +38,11 @@ export default function App() {
     if (activeId !== 'dashboard') return <PlaceholderView title={activeId} />;
     switch (role) {
       case 'Admin':
-        return <AdminDashboard />;
+        return <AdminDashboard role={role} />;
       case 'Office Staff':
-        return <OfficeDashboard />;
+        return <OfficeDashboard role={role} />;
       case 'Port Staff':
-        return <PortDashboard />;
+        return <PortDashboard role={role} />;
     }
   };
 

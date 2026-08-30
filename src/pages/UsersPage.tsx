@@ -4,6 +4,7 @@ import { Card, CardHeader, Badge } from '@/components/ui';
 import { DashboardHeader } from '@/components/Controls';
 import { Icon } from '@/components/Icon';
 import { showToast } from '@/components/Toast';
+import { UserAvatar } from '@/components/UserAvatar';
 
 type Role = SystemUser['role'];
 const roles: Role[] = ['Port Staff', 'Office Staff', 'Admin'];

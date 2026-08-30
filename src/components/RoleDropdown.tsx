@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 import type { Role } from '@/data/mockData';
 import { ROLE_LABELS } from '@/data/mockData';
+import { UserAvatar } from '@/components/UserAvatar';
 
 const ROLES: Role[] = ['Admin', 'Office Staff', 'Port Staff'];
 
@@ -16,9 +17,7 @@ export function RoleDropdown({ role, onChange }: { role: Role; onChange: (r: Rol
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         className="flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left transition hover:border-brand-300 hover:bg-brand-50/40 focus:outline-none focus:ring-2 focus:ring-brand-200"
       >
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-white text-xs font-bold">
-          {info.name.charAt(0)}
-        </div>
+        <UserAvatar role={role} size="sm" />
         <div className="hidden sm:block">
           <div className="text-xs font-semibold text-slate-800 leading-tight">{info.name}</div>
           <div className="text-[11px] text-slate-500 leading-tight">{info.sub}</div>
@@ -40,13 +39,7 @@ export function RoleDropdown({ role, onChange }: { role: Role; onChange: (r: Rol
               }}
               className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition hover:bg-slate-50"
             >
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
-                  r === role ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-500'
-                }`}
-              >
-                {ROLE_LABELS[r].name.charAt(0)}
-              </div>
+              <UserAvatar role={r} size="sm" className={r === role ? 'ring-brand-200' : ''} />
               <div className="flex-1">
                 <div className="text-sm font-semibold text-slate-800">{ROLE_LABELS[r].name}</div>
                 <div className="text-[11px] text-slate-500">{ROLE_LABELS[r].sub}</div>

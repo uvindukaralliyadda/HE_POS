@@ -398,7 +398,7 @@ const INITIAL_CLIENT_INVOICES: ClientInvoice[] = [
 const INITIAL_USERS: SystemUser[] = [
   { id: 'u1', fullName: 'Nimal Perera', username: 'nimal.port', password: 'demo123', role: 'Port Staff', status: 'Active', lastLogin: '28 Aug 2026, 08:42' },
   { id: 'u2', fullName: 'Sanjaya Fernando', username: 'sanjaya.office', password: 'demo123', role: 'Office Staff', status: 'Active', lastLogin: '27 Aug 2026, 17:10' },
-  { id: 'u3', fullName: 'Amara Silva', username: 'amara.admin', password: 'demo123', role: 'Admin', status: 'Active', lastLogin: '28 Aug 2026, 09:05' },
+  { id: 'u3', fullName: 'Harith', username: 'harith.admin', password: 'demo123', role: 'Admin', status: 'Active', lastLogin: '28 Aug 2026, 09:05' },
 ];
 
 const INITIAL_SUPPLIER_VOUCHERS: SupplierVoucher[] = [
