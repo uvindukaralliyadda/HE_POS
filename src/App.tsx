@@ -20,10 +20,25 @@ export default function App() {
   const [activeId, setActiveId] = useState('dashboard');
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [tabVisible, setTabVisible] = useState(true);
 
   const handleRoleChange = (r: Role) => {
     setRole(r);
     setActiveId('dashboard');
+    setTabVisible(false);
+    window.setTimeout(() => setTabVisible(true), 120);
+  };
+
+  const handleTabSelect = (id: string) => {
+    if (id === 'port-ops') {
+      setActiveId(id);
+      return;
+    }
+    setTabVisible(false);
+    window.setTimeout(() => {
+      setActiveId(id);
+      window.setTimeout(() => setTabVisible(true), 50);
+    }, 140);
   };
 
   const renderContent = () => {
@@ -52,7 +67,7 @@ export default function App() {
         <Sidebar
           role={role}
           activeId={activeId}
-          onSelect={setActiveId}
+          onSelect={handleTabSelect}
           collapsed={collapsed}
           mobileOpen={mobileOpen}
           onCloseMobile={() => setMobileOpen(false)}
@@ -66,7 +81,10 @@ export default function App() {
             onRoleChange={handleRoleChange}
           />
           <main className="flex-1 overflow-x-hidden p-4 lg:p-6">
-            <div key={`${role}-${activeId}`} className="animate-fade-in">
+            <div
+              key={`${role}-${activeId}`}
+              className={`transition-all duration-220 ease-out ${tabVisible ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-0'}`}
+            >
               {renderContent()}
             </div>
           </main>

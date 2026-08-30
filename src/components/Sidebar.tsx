@@ -57,10 +57,10 @@ export function Sidebar({
                   onSelect(item.id);
                   onCloseMobile();
                 }}
-                className={`group relative flex items-center gap-3 mx-2 my-0.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
+                className={`group relative mx-2 my-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
                   active
                     ? 'bg-brand-50 text-brand-700'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'
                 } ${collapsed ? 'lg:justify-center lg:px-2' : ''}`}
                 title={collapsed ? item.label : undefined}
               >
@@ -70,7 +70,7 @@ export function Sidebar({
                 <Icon
                   name={item.icon}
                   className={`h-[18px] w-[18px] shrink-0 transition-colors ${
-                    active ? 'text-brand-600' : 'text-slate-400 group-hover:text-slate-600'
+                    active ? 'text-brand-600' : 'text-slate-400 group-hover:text-emerald-600'
                   }`}
                 />
                 {!collapsed && <span className="truncate">{item.label}</span>}

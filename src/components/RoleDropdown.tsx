@@ -8,13 +8,30 @@ const ROLES: Role[] = ['Admin', 'Office Staff', 'Port Staff'];
 
 export function RoleDropdown({ role, onChange }: { role: Role; onChange: (r: Role) => void }) {
   const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
   const info = ROLE_LABELS[role];
+
+  const closeMenu = () => {
+    if (!open) return;
+    setClosing(true);
+    window.setTimeout(() => {
+      setOpen(false);
+      setClosing(false);
+    }, 150);
+  };
 
   return (
     <div className="relative">
       <button
-        onClick={() => setOpen((v) => !v)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onClick={() => {
+          if (open) {
+            closeMenu();
+            return;
+          }
+          setClosing(false);
+          setOpen(true);
+        }}
+        onBlur={() => setTimeout(() => closeMenu(), 120)}
         className="flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left transition hover:border-brand-300 hover:bg-brand-50/40 focus:outline-none focus:ring-2 focus:ring-brand-200"
       >
         <UserAvatar role={role} size="sm" />
@@ -26,7 +43,7 @@ export function RoleDropdown({ role, onChange }: { role: Role; onChange: (r: Rol
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-60 origin-top-right rounded-xl border border-slate-200 bg-white p-2 shadow-elevated animate-scale-in z-50">
+        <div className={`dropdown-panel absolute right-0 top-full z-50 mt-2 w-60 origin-top-right rounded-xl border border-slate-200 bg-white p-2 shadow-elevated ${closing ? 'dropdown-panel-closing' : 'dropdown-panel-open'}`}>
           <div className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
             Switch Role
           </div>
@@ -35,9 +52,9 @@ export function RoleDropdown({ role, onChange }: { role: Role; onChange: (r: Rol
               key={r}
               onMouseDown={() => {
                 onChange(r);
-                setOpen(false);
+                closeMenu();
               }}
-              className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition hover:bg-slate-50"
+              className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition hover:bg-emerald-50"
             >
               <UserAvatar role={r} size="sm" className={r === role ? 'ring-brand-200' : ''} />
               <div className="flex-1">
