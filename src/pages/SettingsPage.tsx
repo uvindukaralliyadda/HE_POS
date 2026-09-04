@@ -9,10 +9,23 @@ export function SettingsPage() {
   return (
     <div className="space-y-5">
       <DashboardHeader title="Settings" subtitle="Configure system materials and tax settings" />
+      <CompanyInformationSection />
       <MaterialsSection />
       <TaxSection />
     </div>
   );
+}
+
+function CompanyInformationSection() {
+  const { companyInfo, setCompanyInfo } = useApp();
+  const [form, setForm] = useState(companyInfo);
+  const save = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!form.name.trim()) return;
+    setCompanyInfo({ ...form, name: form.name.trim(), tin: form.tin.trim(), address: form.address.trim(), telephone: form.telephone.trim() });
+    showToast('Company information updated successfully');
+  };
+  return <Card className="animate-fade-up"><CardHeader title="Company Information" /><form onSubmit={save} className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2"><Field label="Company Name" required><input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className="form-input" /></Field><Field label="TIN"><input value={form.tin} onChange={(event) => setForm({ ...form, tin: event.target.value })} className="form-input" /></Field><Field label="Address"><textarea value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} rows={2} className="form-input resize-none sm:col-span-2" /></Field><Field label="Telephone Number"><input type="tel" value={form.telephone} onChange={(event) => setForm({ ...form, telephone: event.target.value })} className="form-input" /></Field><div className="flex justify-end sm:col-span-2"><button type="submit" className="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white">Save Company Information</button></div></form></Card>;
 }
 
 /* ---------- Materials Management ---------- */
@@ -197,4 +210,8 @@ function TaxSection() {
       </div>
     </Card>
   );
+}
+
+function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+  return <label className="block"><span className="mb-1.5 block text-xs font-semibold text-slate-600">{label}{required && <span className="ml-0.5 text-rose-500">*</span>}</span>{children}</label>;
 }

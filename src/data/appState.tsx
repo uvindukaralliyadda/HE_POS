@@ -134,6 +134,17 @@ export type ClientInvoice = {
   vat: number;
   totalAmount: number;
   paymentStatus: 'Received' | 'Pending';
+  companyInfo?: CompanyInfo;
+  clientInfo?: Client;
+  additionalInformation?: string;
+  paymentMode?: string;
+};
+
+export type CompanyInfo = {
+  name: string;
+  tin: string;
+  address: string;
+  telephone: string;
 };
 
 export type SystemUser = {
@@ -163,6 +174,7 @@ type AppState = {
   clientInvoices: ClientInvoice[];
   users: SystemUser[];
   tax: TaxSettings;
+  companyInfo: CompanyInfo;
   addClient: (c: Omit<Client, 'id'>) => void;
   updateClient: (id: string, patch: Partial<Client>) => void;
   addSupplier: (s: Omit<Supplier, 'id'>) => void;
@@ -183,6 +195,7 @@ type AppState = {
   addUser: (user: Omit<SystemUser, 'id'>) => string;
   updateUser: (id: string, patch: Partial<SystemUser>) => void;
   setTax: (t: Partial<TaxSettings>) => void;
+  setCompanyInfo: (info: CompanyInfo) => void;
 };
 
 const AppContext = createContext<AppState | null>(null);
@@ -451,6 +464,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [clientInvoices, setClientInvoices] = useState<ClientInvoice[]>(INITIAL_CLIENT_INVOICES);
   const [users, setUsers] = useState<SystemUser[]>(INITIAL_USERS);
   const [tax, setTaxState] = useState<TaxSettings>({ ssclPercent: 2.5, vatPercent: 15 });
+  const [companyInfo, setCompanyInfoState] = useState<CompanyInfo>({ name: 'Harith Engineering & Company (Pvt) Ltd', tin: '', address: '', telephone: '' });
 
   const addClient = (c: Omit<Client, 'id'>) => {
     setClients((prev) => [...prev, { ...c, id: nextId('c') }]);
@@ -541,6 +555,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setTax = (t: Partial<TaxSettings>) => {
     setTaxState((prev) => ({ ...prev, ...t }));
   };
+  const setCompanyInfo = (info: CompanyInfo) => setCompanyInfoState(info);
 
   return (
     <AppContext.Provider
@@ -556,6 +571,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         clientInvoices,
         users,
         tax,
+        companyInfo,
         addClient,
         updateClient,
         addSupplier,
@@ -576,6 +592,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addUser,
         updateUser,
         setTax,
+        setCompanyInfo,
       }}
     >
       {children}
