@@ -20,6 +20,8 @@ export function ClientPOsTab({ role = 'Office Staff' }: { role?: 'Admin' | 'Offi
   const { clients, materials, clientPOs, tax, addClientPO, updateClientPO } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [editingPO, setEditingPO] = useState<ClientPO | null>(null);
+  const visiblePOs = role === 'Admin' ? clientPOs : clientPOs.map((po) => ({ ...po, items: po.items.map((item) => ({ ...item, unitPrice: 0 })) }));
+  const priceStatus = new Map(clientPOs.map((po) => [po.id, po.items.every((item) => item.unitPrice > 0)]));
 
   return (
     <div className="space-y-5">
@@ -53,7 +55,7 @@ export function ClientPOsTab({ role = 'Office Staff' }: { role?: 'Admin' | 'Offi
         </div>
       )}
 
-      <ClientPOList role={role} onEdit={(po) => { setEditingPO(po); setShowForm(true); }} />
+      <ClientPOList role={role} clientPOs={visiblePOs} priceStatus={priceStatus} onEdit={(po) => { setEditingPO(po); setShowForm(true); }} />
     </div>
   );
 }
@@ -197,8 +199,7 @@ function ClientPOForm({
             <div className="col-span-4">Description</div>
             <div className="col-span-1">Unit</div>
             <div className="col-span-2">Quantity</div>
-            <div className="col-span-2">Unit Price (LKR)</div>
-            <div className="col-span-2">Amount (LKR)</div>
+            {isAdmin && <><div className="col-span-2">Unit Price (LKR)</div><div className="col-span-2">Amount (LKR)</div></>}
             <div className="col-span-1 text-center">Action</div>
           </div>
 
@@ -241,7 +242,7 @@ function ClientPOForm({
                       className="form-input text-right"
                     />
                   </div>
-                  <div className="col-span-2">
+                  {isAdmin && <div className="col-span-2">
                     <input
                       type="number"
                       min={0}
@@ -251,10 +252,10 @@ function ClientPOForm({
                       placeholder={isAdmin ? '0.00' : 'Pending'}
                       className="form-input text-right disabled:bg-slate-50 disabled:text-slate-400"
                     />
-                  </div>
-                  <div className="col-span-2 flex items-center rounded-lg bg-slate-50 px-3 py-2 text-right text-sm font-bold text-slate-700">
+                  </div>}
+                  {isAdmin && <div className="col-span-2 flex items-center rounded-lg bg-slate-50 px-3 py-2 text-right text-sm font-bold text-slate-700">
                     {formatLKR(calcLineAmount(line))}
-                  </div>
+                  </div>}
                   <div className="col-span-1 flex justify-center">
                     <button
                       type="button"
@@ -302,7 +303,7 @@ function ClientPOForm({
                         className="form-input text-right"
                       />
                     </div>
-                    <div>
+                    {isAdmin && <div>
                       <label className="mb-1 block text-[11px] font-semibold text-slate-500">Unit Price</label>
                       <input
                         type="number"
@@ -313,12 +314,12 @@ function ClientPOForm({
                         placeholder={isAdmin ? '0' : 'Pending'}
                         className="form-input text-right disabled:bg-slate-50 disabled:text-slate-400"
                       />
-                    </div>
+                    </div>}
                   </div>
-                  <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                  {isAdmin && <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
                     <span className="text-[11px] font-semibold text-slate-500">Amount</span>
                     <span className="text-sm font-bold text-slate-700">{formatLKR(calcLineAmount(line))}</span>
-                  </div>
+                  </div>}
                   <button
                     type="button"
                     onClick={() => removeLine(line.id)}
@@ -335,7 +336,7 @@ function ClientPOForm({
           {errors.lines && <p className="mt-2 text-[11px] text-rose-500">{errors.lines}</p>}
 
           {/* Totals */}
-          <div className="mt-5 flex flex-col gap-3 sm:ml-auto sm:max-w-sm">
+          {isAdmin && <div className="mt-5 flex flex-col gap-3 sm:ml-auto sm:max-w-sm">
             <TotalRow label="Subtotal" value={formatLKR(totals.subtotal)} />
             <div className="flex items-center gap-2">
               <label className="text-xs font-semibold text-slate-500">SSCL %</label>
@@ -367,7 +368,7 @@ function ClientPOForm({
               <span className="text-sm font-semibold">Grand Total</span>
               <span className="text-lg font-bold">{formatLKR(totals.grandTotal)}</span>
             </div>
-          </div>
+          </div>}
 
           {/* Actions */}
           <div className="mt-5 flex gap-3">
@@ -409,8 +410,8 @@ const STATUS_TONE: Record<string, string> = {
   Pending: 'amber',
 };
 
-function ClientPOList({ role, onEdit }: { role: 'Admin' | 'Office Staff' | 'Port Staff'; onEdit: (po: ClientPO) => void }) {
-  const { clients, clientPOs } = useApp();
+function ClientPOList({ role, clientPOs, priceStatus, onEdit }: { role: 'Admin' | 'Office Staff' | 'Port Staff'; clientPOs: ClientPO[]; priceStatus: Map<string, boolean>; onEdit: (po: ClientPO) => void }) {
+  const { clients } = useApp();
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? 'Unknown';
@@ -426,7 +427,7 @@ function ClientPOList({ role, onEdit }: { role: 'Admin' | 'Office Staff' | 'Port
               <th className="px-5 py-3 font-semibold">Client</th>
               <th className="px-5 py-3 font-semibold">Site</th>
               <th className="px-5 py-3 font-semibold">Date</th>
-              <th className="px-5 py-3 text-right font-semibold">PO Value</th>
+              {role === 'Admin' && <th className="px-5 py-3 text-right font-semibold">PO Value</th>}
               <th className="hidden px-5 py-3 text-right font-semibold md:table-cell">Required Load</th>
               <th className="hidden px-5 py-3 text-right font-semibold md:table-cell">Fulfilled</th>
               <th className="px-5 py-3 font-semibold">Status</th>
@@ -451,13 +452,13 @@ function ClientPOList({ role, onEdit }: { role: 'Admin' | 'Office Staff' | 'Port
                     <td className="px-5 py-3 text-slate-600">{clientName(po.clientId)}</td>
                     <td className="px-5 py-3 text-slate-600">{po.site}</td>
                     <td className="px-5 py-3 text-slate-500">{po.date}</td>
-                    <td className="px-5 py-3 text-right font-bold text-slate-700">{formatLKR(totals.grandTotal)}</td>
+                    {role === 'Admin' && <td className="px-5 py-3 text-right font-bold text-slate-700">{formatLKR(totals.grandTotal)}</td>}
                     <td className="hidden px-5 py-3 text-right text-slate-500 md:table-cell">{formatMT(requiredLoad)}</td>
                     <td className="hidden px-5 py-3 text-right text-slate-500 md:table-cell">{formatMT(fulfilledLoad)}</td>
                     <td className="px-5 py-3">
                       <Badge tone={STATUS_TONE[po.status] ?? 'slate'}>{po.status}</Badge>
                     </td>
-                    <td className="px-5 py-3"><Badge tone={po.items.every((item) => item.unitPrice > 0) ? 'success' : 'amber'}>{po.items.every((item) => item.unitPrice > 0) ? 'Prices Added' : 'Prices Pending'}</Badge></td>
+                    <td className="px-5 py-3"><Badge tone={priceStatus.get(po.id) ? 'success' : 'amber'}>{priceStatus.get(po.id) ? 'Prices Added' : 'Prices Pending'}</Badge></td>
                     {role === 'Admin' && <td className="px-5 py-3 text-center"><button type="button" onClick={() => onEdit(po)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">Edit</button></td>}
                     <td className="px-5 py-3 text-center">
                       <button
@@ -491,10 +492,10 @@ function ClientPOList({ role, onEdit }: { role: 'Admin' | 'Office Staff' | 'Port
                                     <span className="text-sm font-bold text-slate-700">{item.description}</span>
                                   </div>
                                   <dl className="space-y-1 text-xs">
-                                    <div className="flex justify-between">
+                                    {role === 'Admin' && <div className="flex justify-between">
                                       <dt className="text-slate-400">Value</dt>
                                       <dd className="font-semibold text-slate-700">{item.unitPrice > 0 ? formatLKR(amt) : 'Pending'}</dd>
-                                    </div>
+                                    </div>}
                                     <div className="flex justify-between">
                                       <dt className="text-slate-400">Required</dt>
                                       <dd className="font-semibold text-slate-600">{formatMT(item.quantity)}</dd>
@@ -512,12 +513,12 @@ function ClientPOList({ role, onEdit }: { role: 'Admin' | 'Office Staff' | 'Port
                               );
                             })}
                           </div>
-                          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-3 text-sm sm:grid-cols-4">
+                          {role === 'Admin' && <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-3 text-sm sm:grid-cols-4">
                             <MiniStat label="Subtotal" value={formatLKR(totals.subtotal)} />
                             <MiniStat label="SSCL" value={formatLKR(totals.ssclAmount)} />
                             <MiniStat label="VAT" value={formatLKR(totals.vatAmount)} />
                             <MiniStat label="Grand Total" value={formatLKR(totals.grandTotal)} bold />
-                          </div>
+                          </div>}
                         </div>
                       </td>
                     </tr>
