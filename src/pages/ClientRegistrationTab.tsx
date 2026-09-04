@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { useApp } from '@/data/appState';
+import { useApp, type Client } from '@/data/appState';
 import { showToast } from '@/components/Toast';
-import { Card, CardHeader, Badge } from '@/components/ui';
+import { Card, CardHeader, Badge, Modal } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 
 const EMPTY = { name: '', tin: '', address: '', phone: '' };
 
 export function ClientRegistrationTab() {
-  const { clients, clientPOs, addClient } = useApp();
+  const { clients, clientPOs, addClient, updateClient } = useApp();
   const [form, setForm] = useState(EMPTY);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
 
   const poCount = (clientId: string) => clientPOs.filter((p) => p.clientId === clientId).length;
 
@@ -21,6 +22,7 @@ export function ClientRegistrationTab() {
   };
 
   return (
+    <>
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-5">
       {/* Registration form */}
       <div className="xl:col-span-2">
@@ -79,7 +81,7 @@ export function ClientRegistrationTab() {
         <Card className="animate-fade-up">
           <CardHeader title="Registered Clients" action={<Badge tone="brand">{clients.length} clients</Badge>} />
           <div className="overflow-x-auto scrollbar-thin">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[720px] text-sm">
               <thead>
                 <tr className="border-b border-slate-100 text-left text-xs text-slate-400">
                   <th className="px-5 py-3 font-semibold">Client Name</th>
@@ -87,6 +89,7 @@ export function ClientRegistrationTab() {
                   <th className="px-5 py-3 font-semibold">Phone</th>
                   <th className="hidden px-5 py-3 font-semibold lg:table-cell">Address</th>
                   <th className="px-5 py-3 text-center font-semibold">POs</th>
+                  <th className="sticky right-0 z-20 bg-slate-50 px-5 py-3 text-center font-semibold shadow-[-4px_0_8px_rgba(15,23,42,0.06)]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -110,6 +113,7 @@ export function ClientRegistrationTab() {
                     <td className="px-5 py-3 text-center">
                       <Badge tone={poCount(c.id) > 0 ? 'brand' : 'slate'}>{poCount(c.id)}</Badge>
                     </td>
+                    <td className="sticky right-0 z-10 bg-white px-5 py-3 text-center shadow-[-4px_0_8px_rgba(15,23,42,0.06)]"><button type="button" onClick={() => setEditingClient(c)} title="Edit client" className="rounded-lg p-2 text-slate-400 hover:bg-brand-50 hover:text-brand-600"><Icon name="Pencil" className="h-4 w-4" /></button></td>
                   </tr>
                 ))}
               </tbody>
@@ -118,7 +122,15 @@ export function ClientRegistrationTab() {
         </Card>
       </div>
     </div>
+    {editingClient && <ClientEditModal client={editingClient} onCancel={() => setEditingClient(null)} onSave={(patch) => { updateClient(editingClient.id, patch); setEditingClient(null); showToast('Client updated successfully'); }} />}
+    </>
   );
+}
+
+function ClientEditModal({ client, onCancel, onSave }: { client: Client; onCancel: () => void; onSave: (patch: Omit<Client, 'id'>) => void }) {
+  const [form, setForm] = useState<Omit<Client, 'id'>>({ name: client.name, tin: client.tin, address: client.address, phone: client.phone });
+  const submit = (event: React.FormEvent) => { event.preventDefault(); if (!form.name.trim() || !form.tin.trim()) return; onSave({ ...form, name: form.name.trim(), tin: form.tin.trim() }); };
+  return <Modal title="Edit Client" onClose={onCancel}><form onSubmit={submit} className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2"><Field label="Client Name" required><input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className="form-input" /></Field><Field label="Client TIN" required><input value={form.tin} onChange={(event) => setForm({ ...form, tin: event.target.value })} className="form-input" /></Field><Field label="Client Address"><textarea value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} rows={2} className="form-input resize-none sm:col-span-2" /></Field><Field label="Client Phone Number"><input type="tel" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} className="form-input" /></Field><div className="flex justify-end gap-2 border-t border-slate-100 pt-4 sm:col-span-2"><button type="button" onClick={onCancel} className="rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100">Cancel</button><button type="submit" className="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white">Save Changes</button></div></form></Modal>;
 }
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {

@@ -3,10 +3,11 @@ import { DashboardHeader } from '@/components/Controls';
 import { Icon } from '@/components/Icon';
 import { ClientRegistrationTab } from './ClientRegistrationTab';
 import { ClientPOsTab } from './ClientPOsTab';
+import type { Role } from '@/data/mockData';
 
 type Tab = 'registration' | 'pos';
 
-export function ClientsPage() {
+export function ClientsPage({ role = 'Office Staff' }: { role?: Role }) {
   const [tab, setTab] = useState<Tab>('registration');
 
   return (
@@ -24,7 +25,7 @@ export function ClientsPage() {
       </div>
 
       <div key={tab} className="tab-content-enter">
-        {tab === 'registration' ? <ClientRegistrationTab /> : <ClientPOsTab />}
+        {tab === 'registration' ? <ClientRegistrationTab /> : <ClientPOsTab role={role} />}
       </div>
     </div>
   );

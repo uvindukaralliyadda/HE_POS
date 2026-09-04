@@ -18,6 +18,32 @@ export function CardHeader({ title, action }: { title: string; action?: ReactNod
   );
 }
 
+export function Modal({
+  title,
+  children,
+  onClose,
+  className = '',
+}: {
+  title: string;
+  children: ReactNode;
+  onClose: () => void;
+  className?: string;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/25 p-4 animate-fade-in">
+      <div className={`flex max-h-[90vh] w-full max-w-3xl flex-col rounded-xl border border-slate-200 bg-white shadow-elevated animate-scale-in ${className}`}>
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+          <h2 className="text-base font-bold text-slate-800">{title}</h2>
+          <button type="button" onClick={onClose} aria-label="Close" className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+            <Icon name="X" className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="min-h-0 overflow-y-auto">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 const ACCENT_MAP: Record<string, { bg: string; text: string }> = {
   brand: { bg: 'bg-brand-50', text: 'text-brand-600' },
   success: { bg: 'bg-success-50', text: 'text-success-600' },

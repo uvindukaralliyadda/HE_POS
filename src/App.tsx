@@ -14,6 +14,7 @@ import { SupplierVouchersPage } from '@/pages/SupplierVouchersPage';
 import { InvoicesPage } from '@/pages/InvoicesPage';
 import { UsersPage } from '@/pages/UsersPage';
 import { LedgerPage } from '@/pages/LedgerPage';
+import { POTrackingPage } from '@/pages/POTrackingPage';
 
 export default function App() {
   const [role, setRole] = useState<Role>('Admin');
@@ -42,7 +43,8 @@ export default function App() {
   };
 
   const renderContent = () => {
-    if (activeId === 'clients') return <ClientsPage />;
+    if (activeId === 'clients') return <ClientsPage role={role} />;
+    if (activeId === 'po-tracking') return role === 'Admin' ? <POTrackingPage /> : <AccessDeniedView />;
     if (activeId === 'suppliers') return <SuppliersPage />;
     if (activeId === 'settings') return <SettingsPage />;
     if (activeId === 'vouchers') return <SupplierVouchersPage />;
@@ -111,6 +113,16 @@ function PlaceholderView({ title }: { title: string }) {
       <p className="mt-1 max-w-sm text-sm text-slate-400">
         This module is part of the full POS system. The prototype focuses on the dashboard foundation and role-based navigation.
       </p>
+    </div>
+  );
+}
+
+function AccessDeniedView() {
+  return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">Access</div>
+      <h2 className="mt-4 text-lg font-bold text-slate-700">Access restricted</h2>
+      <p className="mt-1 max-w-sm text-sm text-slate-400">This module is available to Admin users only.</p>
     </div>
   );
 }

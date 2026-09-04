@@ -16,6 +16,7 @@ export const ROLE_LABELS: Record<Role, { name: string; sub: string }> = {
 export const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard', roles: ['Admin', 'Office Staff', 'Port Staff'] },
   { id: 'clients', label: 'Clients', icon: 'Building2', roles: ['Admin', 'Office Staff'] },
+  { id: 'po-tracking', label: 'PO Tracking', icon: 'ChartNoAxesCombined', roles: ['Admin'] },
   { id: 'suppliers', label: 'Suppliers', icon: 'Truck', roles: ['Admin', 'Office Staff'] },
   { id: 'port-ops', label: 'Port Operations', icon: 'Ship', roles: ['Admin', 'Office Staff', 'Port Staff'] },
   { id: 'invoices', label: 'Invoices', icon: 'ReceiptText', roles: ['Admin', 'Office Staff'] },

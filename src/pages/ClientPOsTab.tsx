@@ -1,7 +1,7 @@
 import { useState, Fragment } from 'react';
-import { useApp, calcPOTotals, calcLineAmount, formatLKR, formatMT, type POLineItem } from '@/data/appState';
+import { useApp, calcPOTotals, calcLineAmount, formatLKR, formatMT, type ClientPO, type POLineItem } from '@/data/appState';
 import { showToast } from '@/components/Toast';
-import { Card, CardHeader, Badge } from '@/components/ui';
+import { Card, CardHeader, Badge, Modal } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 
 let lineIdCounter = 0;
@@ -16,28 +16,35 @@ const emptyLine = (): POLineItem => ({
   fulfilled: 0,
 });
 
-export function ClientPOsTab() {
-  const { clients, materials, clientPOs, tax, addClientPO } = useApp();
+export function ClientPOsTab({ role = 'Office Staff' }: { role?: 'Admin' | 'Office Staff' | 'Port Staff' }) {
+  const { clients, materials, clientPOs, tax, addClientPO, updateClientPO } = useApp();
   const [showForm, setShowForm] = useState(false);
+  const [editingPO, setEditingPO] = useState<ClientPO | null>(null);
 
   return (
     <div className="space-y-5">
-      {showForm ? (
-        <ClientPOForm
+      {showForm && (
+        <Modal title={editingPO ? 'Edit Client PO' : 'Create Client PO'} onClose={() => { setShowForm(false); setEditingPO(null); }}>
+          <ClientPOForm
+          role={role}
+          initialPO={editingPO}
           clients={clients}
           materials={materials}
           tax={tax}
           onSubmit={(po) => {
-            addClientPO(po);
-            showToast('Client PO created successfully');
+            if (editingPO) { updateClientPO(editingPO.id, po); showToast('Client PO updated successfully'); }
+            else { addClientPO(po); showToast('Client PO created successfully'); }
             setShowForm(false);
+            setEditingPO(null);
           }}
           onCancel={() => setShowForm(false)}
-        />
-      ) : (
+          />
+        </Modal>
+      )}
+      {!showForm && (
         <div className="flex justify-end">
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => { setEditingPO(null); setShowForm(true); }}
             className="flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-brand-700 active:scale-[0.98]"
           >
             <Icon name="Plus" className="h-4 w-4" />
@@ -46,7 +53,7 @@ export function ClientPOsTab() {
         </div>
       )}
 
-      <ClientPOList />
+      <ClientPOList role={role} onEdit={(po) => { setEditingPO(po); setShowForm(true); }} />
     </div>
   );
 }
@@ -54,25 +61,30 @@ export function ClientPOsTab() {
 /* ---------- PO Creation Form ---------- */
 
 function ClientPOForm({
+  role,
+  initialPO,
   clients,
   materials,
   tax,
   onSubmit,
   onCancel,
 }: {
+  role: 'Admin' | 'Office Staff' | 'Port Staff';
+  initialPO: ClientPO | null;
   clients: { id: string; name: string }[];
   materials: { id: string; name: string; unit: string; active: boolean }[];
   tax: { ssclPercent: number; vatPercent: number };
-  onSubmit: (po: any) => void;
+  onSubmit: (po: Omit<ClientPO, 'id'>) => void;
   onCancel: () => void;
 }) {
-  const [clientId, setClientId] = useState('');
-  const [site, setSite] = useState('');
-  const [poNumber, setPoNumber] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [lines, setLines] = useState<POLineItem[]>([emptyLine()]);
-  const [ssclPercent, setSsclPercent] = useState(tax.ssclPercent);
-  const [vatPercent, setVatPercent] = useState(tax.vatPercent);
+  const isAdmin = role === 'Admin';
+  const [clientId, setClientId] = useState(initialPO?.clientId ?? '');
+  const [site, setSite] = useState(initialPO?.site ?? '');
+  const [poNumber, setPoNumber] = useState(initialPO?.poNumber ?? '');
+  const [date, setDate] = useState(initialPO?.date ?? new Date().toISOString().slice(0, 10));
+  const [lines, setLines] = useState<POLineItem[]>(initialPO?.items ?? [emptyLine()]);
+  const [ssclPercent, setSsclPercent] = useState(initialPO?.ssclPercent ?? tax.ssclPercent);
+  const [vatPercent, setVatPercent] = useState(initialPO?.vatPercent ?? tax.vatPercent);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const activeMaterials = materials.filter((m) => m.active);
@@ -93,8 +105,8 @@ function ClientPOForm({
     if (!site.trim()) errs.site = 'Site is required';
     if (!poNumber.trim()) errs.poNumber = 'PO number is required';
     if (lines.length === 0) errs.lines = 'Add at least one material';
-    const invalidLines = lines.some((l) => !l.description || l.quantity <= 0 || l.unitPrice <= 0);
-    if (invalidLines) errs.lines = 'All material rows need a description, quantity, and unit price';
+    const invalidLines = lines.some((l) => !l.description || l.quantity <= 0);
+    if (invalidLines) errs.lines = 'All material rows need a description and quantity';
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
@@ -115,7 +127,7 @@ function ClientPOForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* PO header fields */}
       <Card className="animate-fade-up">
-        <CardHeader title="Create Client PO" />
+          <CardHeader title={initialPO ? 'Edit Client PO' : 'Create Client PO'} />
         <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-4">
           <div>
             <label className="mb-1.5 block text-xs font-semibold text-slate-600">
@@ -234,9 +246,10 @@ function ClientPOForm({
                       type="number"
                       min={0}
                       value={line.unitPrice || ''}
+                      disabled={!isAdmin}
                       onChange={(e) => updateLine(line.id, { unitPrice: parseFloat(e.target.value) || 0 })}
-                      placeholder="0.00"
-                      className="form-input text-right"
+                      placeholder={isAdmin ? '0.00' : 'Pending'}
+                      className="form-input text-right disabled:bg-slate-50 disabled:text-slate-400"
                     />
                   </div>
                   <div className="col-span-2 flex items-center rounded-lg bg-slate-50 px-3 py-2 text-right text-sm font-bold text-slate-700">
@@ -295,9 +308,10 @@ function ClientPOForm({
                         type="number"
                         min={0}
                         value={line.unitPrice || ''}
+                        disabled={!isAdmin}
                         onChange={(e) => updateLine(line.id, { unitPrice: parseFloat(e.target.value) || 0 })}
-                        placeholder="0"
-                        className="form-input text-right"
+                        placeholder={isAdmin ? '0' : 'Pending'}
+                        className="form-input text-right disabled:bg-slate-50 disabled:text-slate-400"
                       />
                     </div>
                   </div>
@@ -362,7 +376,7 @@ function ClientPOForm({
               className="flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-brand-700 active:scale-[0.98]"
             >
               <Icon name="Check" className="h-4 w-4" />
-              Create Client PO
+              {initialPO ? 'Save Changes' : 'Create Client PO'}
             </button>
             <button
               type="button"
@@ -395,7 +409,7 @@ const STATUS_TONE: Record<string, string> = {
   Pending: 'amber',
 };
 
-function ClientPOList() {
+function ClientPOList({ role, onEdit }: { role: 'Admin' | 'Office Staff' | 'Port Staff'; onEdit: (po: ClientPO) => void }) {
   const { clients, clientPOs } = useApp();
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -416,6 +430,8 @@ function ClientPOList() {
               <th className="hidden px-5 py-3 text-right font-semibold md:table-cell">Required Load</th>
               <th className="hidden px-5 py-3 text-right font-semibold md:table-cell">Fulfilled</th>
               <th className="px-5 py-3 font-semibold">Status</th>
+              <th className="px-5 py-3 font-semibold">Unit Price Status</th>
+              {role === 'Admin' && <th className="px-5 py-3 text-center font-semibold">Action</th>}
               <th className="px-5 py-3 text-center font-semibold">Expand</th>
             </tr>
           </thead>
@@ -441,6 +457,8 @@ function ClientPOList() {
                     <td className="px-5 py-3">
                       <Badge tone={STATUS_TONE[po.status] ?? 'slate'}>{po.status}</Badge>
                     </td>
+                    <td className="px-5 py-3"><Badge tone={po.items.every((item) => item.unitPrice > 0) ? 'success' : 'amber'}>{po.items.every((item) => item.unitPrice > 0) ? 'Prices Added' : 'Prices Pending'}</Badge></td>
+                    {role === 'Admin' && <td className="px-5 py-3 text-center"><button type="button" onClick={() => onEdit(po)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">Edit</button></td>}
                     <td className="px-5 py-3 text-center">
                       <button
                         onClick={() => setExpanded(isOpen ? null : po.id)}
@@ -455,7 +473,7 @@ function ClientPOList() {
                   </tr>
                     {isOpen && (
                     <tr key={`${po.id}-detail`} className="animate-fade-in">
-                      <td colSpan={9} className="bg-slate-50/50 px-5 py-4">
+                      <td colSpan={role === 'Admin' ? 11 : 10} className="bg-slate-50/50 px-5 py-4">
                         <div className="rounded-lg border border-slate-200 bg-white p-4">
                           <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
                             Material Breakdown
@@ -475,7 +493,7 @@ function ClientPOList() {
                                   <dl className="space-y-1 text-xs">
                                     <div className="flex justify-between">
                                       <dt className="text-slate-400">Value</dt>
-                                      <dd className="font-semibold text-slate-700">{formatLKR(amt)}</dd>
+                                      <dd className="font-semibold text-slate-700">{item.unitPrice > 0 ? formatLKR(amt) : 'Pending'}</dd>
                                     </div>
                                     <div className="flex justify-between">
                                       <dt className="text-slate-400">Required</dt>

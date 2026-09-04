@@ -67,6 +67,12 @@ export type SupplierPO = {
   status: 'Active' | 'Completed' | 'Pending';
 };
 
+export type SupplierAssignment = {
+  supplierId: string;
+  supplierPOId: string;
+  state: PortEntry['state'];
+};
+
 export type PortEntry = {
   id: string;
   tableId: string;
@@ -77,9 +83,11 @@ export type PortEntry = {
   material: string;
   truckNumber: string;
   billNo: string;
+  grnNumber: string;
   supplierId: string;
   customerId: string;
   state: 'Transport' | 'Material' | 'Both';
+  supplierAssignments: SupplierAssignment[];
   priceMode: SupplierLineItem['priceMode'];
   grossWeight: number | null;
   tareWeight: number | null;
@@ -103,7 +111,9 @@ export type SupplierVoucher = {
   fromDate: string;
   toDate: string;
   subtotal: number;
+  ssclEnabled: boolean;
   sscl: number;
+  vatEnabled: boolean;
   vat: number;
   grandTotal: number;
   paymentStatus: 'Paid' | 'Unpaid';
@@ -118,7 +128,9 @@ export type ClientInvoice = {
   fromDate: string;
   toDate: string;
   subtotal: number;
+  ssclEnabled: boolean;
   sscl: number;
+  vatEnabled: boolean;
   vat: number;
   totalAmount: number;
   paymentStatus: 'Received' | 'Pending';
@@ -152,10 +164,13 @@ type AppState = {
   users: SystemUser[];
   tax: TaxSettings;
   addClient: (c: Omit<Client, 'id'>) => void;
+  updateClient: (id: string, patch: Partial<Client>) => void;
   addSupplier: (s: Omit<Supplier, 'id'>) => void;
+  updateSupplier: (id: string, patch: Partial<Supplier>) => void;
   addMaterial: (m: Omit<Material, 'id'>) => void;
   updateMaterial: (id: string, patch: Partial<Material>) => void;
   addClientPO: (po: Omit<ClientPO, 'id'>) => void;
+  updateClientPO: (id: string, patch: Partial<ClientPO>) => void;
   addSupplierPO: (po: Omit<SupplierPO, 'id'>) => void;
   addPortEntry: (entry: Omit<PortEntry, 'id'>) => string;
   addPortTable: (table: Omit<PortTable, 'id'>) => string;
@@ -299,9 +314,11 @@ const INITIAL_PORT_ENTRIES: PortEntry[] = [
     material: 'Sand',
     truckNumber: 'WP CAB-1234',
     billNo: 'BILL-1001',
+    grnNumber: 'GRN-001',
     supplierId: 's1',
     customerId: 'c1',
     state: 'Material',
+    supplierAssignments: [{ supplierId: 's1', supplierPOId: 'sp1', state: 'Material' }, { supplierId: 's1', supplierPOId: 'sp1', state: 'Material' }],
     priceMode: 'both',
     grossWeight: 25.5,
     tareWeight: 10.5,
@@ -318,9 +335,11 @@ const INITIAL_PORT_ENTRIES: PortEntry[] = [
     material: 'Sand',
     truckNumber: 'WP CAA-5678',
     billNo: 'BILL-1002',
+    grnNumber: 'GRN-002',
     supplierId: 's1',
     customerId: 'c1',
     state: 'Both',
+    supplierAssignments: [{ supplierId: 's1', supplierPOId: 'sp1', state: 'Both' }],
     priceMode: 'both',
     grossWeight: 28,
     tareWeight: 11,
@@ -338,9 +357,11 @@ const INITIAL_PORT_ENTRIES: PortEntry[] = [
     material: 'Sand',
     truckNumber: 'WP CBB-2345',
     billNo: 'BILL-2001',
+    grnNumber: 'GRN-003',
     supplierId: 's2',
     customerId: '',
     state: 'Transport',
+    supplierAssignments: [{ supplierId: 's2', supplierPOId: 'sp2', state: 'Transport' }, { supplierId: 's2', supplierPOId: 'sp2', state: 'Transport' }],
     priceMode: 'both',
     grossWeight: null,
     tareWeight: null,
@@ -357,9 +378,11 @@ const INITIAL_PORT_ENTRIES: PortEntry[] = [
     material: 'Gravel',
     truckNumber: 'CP EFG-3456',
     billNo: 'BILL-3001',
+    grnNumber: 'GRN-004',
     supplierId: 's3',
     customerId: 'c3',
     state: 'Material',
+    supplierAssignments: [{ supplierId: 's3', supplierPOId: 'sp3', state: 'Material' }, { supplierId: 's3', supplierPOId: 'sp3', state: 'Material' }],
     priceMode: 'both',
     grossWeight: 30,
     tareWeight: 12,
@@ -376,9 +399,11 @@ const INITIAL_PORT_ENTRIES: PortEntry[] = [
     material: 'Gravel',
     truckNumber: 'CP HIJ-7890',
     billNo: 'BILL-3002',
+    grnNumber: 'GRN-005',
     supplierId: 's3',
     customerId: 'c3',
     state: 'Both',
+    supplierAssignments: [{ supplierId: 's3', supplierPOId: 'sp3', state: 'Both' }],
     priceMode: 'both',
     grossWeight: 24.5,
     tareWeight: 9.5,
@@ -389,10 +414,10 @@ const INITIAL_PORT_ENTRIES: PortEntry[] = [
 ];
 
 const INITIAL_CLIENT_INVOICES: ClientInvoice[] = [
-  { id: 'INV-001', clientId: 'c1', clientName: 'ABC Construction', site: 'Colombo 03 Project', invoiceDate: '2026-08-25', fromDate: '2026-08-20', toDate: '2026-08-22', subtotal: 320000, sscl: 8000, vat: 49200, totalAmount: 377200, paymentStatus: 'Received' },
-  { id: 'INV-002', clientId: 'c2', clientName: 'XYZ Holdings', site: 'Colombo 07 Project', invoiceDate: '2026-08-26', fromDate: '2026-08-21', toDate: '2026-08-23', subtotal: 540000, sscl: 13500, vat: 83250, totalAmount: 636750, paymentStatus: 'Pending' },
-  { id: 'INV-003', clientId: 'c3', clientName: 'Lanka Infrastructure', site: 'Wattala Project', invoiceDate: '2026-08-27', fromDate: '2026-08-22', toDate: '2026-08-24', subtotal: 185000, sscl: 4625, vat: 28444, totalAmount: 218069, paymentStatus: 'Received' },
-  { id: 'INV-004', clientId: 'c4', clientName: 'Prime Developers', site: 'Mount Lavinia Project', invoiceDate: '2026-08-28', fromDate: '2026-08-25', toDate: '2026-08-28', subtotal: 410000, sscl: 10250, vat: 63038, totalAmount: 483288, paymentStatus: 'Pending' },
+  { id: 'INV-001', clientId: 'c1', clientName: 'ABC Construction', site: 'Colombo 03 Project', invoiceDate: '2026-08-25', fromDate: '2026-08-20', toDate: '2026-08-22', subtotal: 320000, ssclEnabled: true, sscl: 8000, vatEnabled: true, vat: 49200, totalAmount: 377200, paymentStatus: 'Received' },
+  { id: 'INV-002', clientId: 'c2', clientName: 'XYZ Holdings', site: 'Colombo 07 Project', invoiceDate: '2026-08-26', fromDate: '2026-08-21', toDate: '2026-08-23', subtotal: 540000, ssclEnabled: true, sscl: 13500, vatEnabled: true, vat: 83250, totalAmount: 636750, paymentStatus: 'Pending' },
+  { id: 'INV-003', clientId: 'c3', clientName: 'Lanka Infrastructure', site: 'Wattala Project', invoiceDate: '2026-08-27', fromDate: '2026-08-22', toDate: '2026-08-24', subtotal: 185000, ssclEnabled: true, sscl: 4625, vatEnabled: true, vat: 28444, totalAmount: 218069, paymentStatus: 'Received' },
+  { id: 'INV-004', clientId: 'c4', clientName: 'Prime Developers', site: 'Mount Lavinia Project', invoiceDate: '2026-08-28', fromDate: '2026-08-25', toDate: '2026-08-28', subtotal: 410000, ssclEnabled: true, sscl: 10250, vatEnabled: true, vat: 63038, totalAmount: 483288, paymentStatus: 'Pending' },
 ];
 
 const INITIAL_USERS: SystemUser[] = [
@@ -402,13 +427,13 @@ const INITIAL_USERS: SystemUser[] = [
 ];
 
 const INITIAL_SUPPLIER_VOUCHERS: SupplierVoucher[] = [
-  { id: 'SV-001', supplierId: 's1', supplierName: 'Supplier A', voucherDate: '2026-08-22', fromDate: '2026-08-20', toDate: '2026-08-20', subtotal: 70000, sscl: 1750, vat: 10763, grandTotal: 82513, paymentStatus: 'Paid' },
-  { id: 'SV-002', supplierId: 's2', supplierName: 'Supplier B', voucherDate: '2026-08-23', fromDate: '2026-08-21', toDate: '2026-08-21', subtotal: 102000, sscl: 2550, vat: 15683, grandTotal: 120233, paymentStatus: 'Unpaid' },
-  { id: 'SV-003', supplierId: 's3', supplierName: 'Supplier C', voucherDate: '2026-08-24', fromDate: '2026-08-22', toDate: '2026-08-22', subtotal: 145000, sscl: 3625, vat: 22300, grandTotal: 170925, paymentStatus: 'Paid' },
-  { id: 'SV-004', supplierId: 's1', supplierName: 'Supplier A', voucherDate: '2026-08-25', fromDate: '2026-08-23', toDate: '2026-08-24', subtotal: 88000, sscl: 2200, vat: 13530, grandTotal: 103730, paymentStatus: 'Unpaid' },
-  { id: 'SV-005', supplierId: 's4', supplierName: 'Supplier D', voucherDate: '2026-08-26', fromDate: '2026-08-24', toDate: '2026-08-25', subtotal: 215000, sscl: 5375, vat: 33056, grandTotal: 253431, paymentStatus: 'Paid' },
-  { id: 'SV-006', supplierId: 's2', supplierName: 'Supplier B', voucherDate: '2026-08-27', fromDate: '2026-08-25', toDate: '2026-08-26', subtotal: 64000, sscl: 1600, vat: 9840, grandTotal: 75440, paymentStatus: 'Unpaid' },
-  { id: 'SV-007', supplierId: 's3', supplierName: 'Supplier C', voucherDate: '2026-08-28', fromDate: '2026-08-26', toDate: '2026-08-28', subtotal: 126000, sscl: 3150, vat: 19373, grandTotal: 148523, paymentStatus: 'Paid' },
+  { id: 'SV-001', supplierId: 's1', supplierName: 'Supplier A', voucherDate: '2026-08-22', fromDate: '2026-08-20', toDate: '2026-08-20', subtotal: 70000, ssclEnabled: true, sscl: 1750, vatEnabled: true, vat: 10763, grandTotal: 82513, paymentStatus: 'Paid' },
+  { id: 'SV-002', supplierId: 's2', supplierName: 'Supplier B', voucherDate: '2026-08-23', fromDate: '2026-08-21', toDate: '2026-08-21', subtotal: 102000, ssclEnabled: true, sscl: 2550, vatEnabled: true, vat: 15683, grandTotal: 120233, paymentStatus: 'Unpaid' },
+  { id: 'SV-003', supplierId: 's3', supplierName: 'Supplier C', voucherDate: '2026-08-24', fromDate: '2026-08-22', toDate: '2026-08-22', subtotal: 145000, ssclEnabled: true, sscl: 3625, vatEnabled: true, vat: 22300, grandTotal: 170925, paymentStatus: 'Paid' },
+  { id: 'SV-004', supplierId: 's1', supplierName: 'Supplier A', voucherDate: '2026-08-25', fromDate: '2026-08-23', toDate: '2026-08-24', subtotal: 88000, ssclEnabled: true, sscl: 2200, vatEnabled: true, vat: 13530, grandTotal: 103730, paymentStatus: 'Unpaid' },
+  { id: 'SV-005', supplierId: 's4', supplierName: 'Supplier D', voucherDate: '2026-08-26', fromDate: '2026-08-24', toDate: '2026-08-25', subtotal: 215000, ssclEnabled: true, sscl: 5375, vatEnabled: true, vat: 33056, grandTotal: 253431, paymentStatus: 'Paid' },
+  { id: 'SV-006', supplierId: 's2', supplierName: 'Supplier B', voucherDate: '2026-08-27', fromDate: '2026-08-25', toDate: '2026-08-26', subtotal: 64000, ssclEnabled: true, sscl: 1600, vatEnabled: true, vat: 9840, grandTotal: 75440, paymentStatus: 'Unpaid' },
+  { id: 'SV-007', supplierId: 's3', supplierName: 'Supplier C', voucherDate: '2026-08-28', fromDate: '2026-08-26', toDate: '2026-08-28', subtotal: 126000, ssclEnabled: true, sscl: 3150, vatEnabled: true, vat: 19373, grandTotal: 148523, paymentStatus: 'Paid' },
 ];
 
 let idCounter = 100;
@@ -431,8 +456,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setClients((prev) => [...prev, { ...c, id: nextId('c') }]);
   };
 
+  const updateClient = (id: string, patch: Partial<Client>) => {
+    setClients((prev) => prev.map((client) => (client.id === id ? { ...client, ...patch } : client)));
+  };
+
   const addSupplier = (s: Omit<Supplier, 'id'>) => {
     setSuppliers((prev) => [...prev, { ...s, id: nextId('s') }]);
+  };
+
+  const updateSupplier = (id: string, patch: Partial<Supplier>) => {
+    setSuppliers((prev) => prev.map((supplier) => (supplier.id === id ? { ...supplier, ...patch } : supplier)));
   };
 
   const addMaterial = (m: Omit<Material, 'id'>) => {
@@ -445,6 +478,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addClientPO = (po: Omit<ClientPO, 'id'>) => {
     setClientPOs((prev) => [...prev, { ...po, id: nextId('p') }]);
+  };
+
+  const updateClientPO = (id: string, patch: Partial<ClientPO>) => {
+    setClientPOs((prev) => prev.map((po) => (po.id === id ? { ...po, ...patch } : po)));
   };
 
   const addSupplierPO = (po: Omit<SupplierPO, 'id'>) => {
@@ -520,10 +557,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         users,
         tax,
         addClient,
+        updateClient,
         addSupplier,
+        updateSupplier,
         addMaterial,
         updateMaterial,
         addClientPO,
+        updateClientPO,
         addSupplierPO,
         addPortEntry,
         addPortTable,
