@@ -105,6 +105,7 @@ export type PortTable = {
 
 export type SupplierVoucher = {
   id: string;
+  lines: SupplierVoucherLine[];
   supplierId: string;
   supplierName: string;
   voucherDate: string;
@@ -117,6 +118,10 @@ export type SupplierVoucher = {
   vat: number;
   grandTotal: number;
   paymentStatus: 'Paid' | 'Unpaid';
+};
+
+export type SupplierVoucherLine = {
+  portEntryId: string;
 };
 
 export type ClientInvoice = {
@@ -440,13 +445,13 @@ const INITIAL_USERS: SystemUser[] = [
 ];
 
 const INITIAL_SUPPLIER_VOUCHERS: SupplierVoucher[] = [
-  { id: 'SV-001', supplierId: 's1', supplierName: 'Supplier A', voucherDate: '2026-08-22', fromDate: '2026-08-20', toDate: '2026-08-20', subtotal: 70000, ssclEnabled: true, sscl: 1750, vatEnabled: true, vat: 10763, grandTotal: 82513, paymentStatus: 'Paid' },
-  { id: 'SV-002', supplierId: 's2', supplierName: 'Supplier B', voucherDate: '2026-08-23', fromDate: '2026-08-21', toDate: '2026-08-21', subtotal: 102000, ssclEnabled: true, sscl: 2550, vatEnabled: true, vat: 15683, grandTotal: 120233, paymentStatus: 'Unpaid' },
-  { id: 'SV-003', supplierId: 's3', supplierName: 'Supplier C', voucherDate: '2026-08-24', fromDate: '2026-08-22', toDate: '2026-08-22', subtotal: 145000, ssclEnabled: true, sscl: 3625, vatEnabled: true, vat: 22300, grandTotal: 170925, paymentStatus: 'Paid' },
-  { id: 'SV-004', supplierId: 's1', supplierName: 'Supplier A', voucherDate: '2026-08-25', fromDate: '2026-08-23', toDate: '2026-08-24', subtotal: 88000, ssclEnabled: true, sscl: 2200, vatEnabled: true, vat: 13530, grandTotal: 103730, paymentStatus: 'Unpaid' },
-  { id: 'SV-005', supplierId: 's4', supplierName: 'Supplier D', voucherDate: '2026-08-26', fromDate: '2026-08-24', toDate: '2026-08-25', subtotal: 215000, ssclEnabled: true, sscl: 5375, vatEnabled: true, vat: 33056, grandTotal: 253431, paymentStatus: 'Paid' },
-  { id: 'SV-006', supplierId: 's2', supplierName: 'Supplier B', voucherDate: '2026-08-27', fromDate: '2026-08-25', toDate: '2026-08-26', subtotal: 64000, ssclEnabled: true, sscl: 1600, vatEnabled: true, vat: 9840, grandTotal: 75440, paymentStatus: 'Unpaid' },
-  { id: 'SV-007', supplierId: 's3', supplierName: 'Supplier C', voucherDate: '2026-08-28', fromDate: '2026-08-26', toDate: '2026-08-28', subtotal: 126000, ssclEnabled: true, sscl: 3150, vatEnabled: true, vat: 19373, grandTotal: 148523, paymentStatus: 'Paid' },
+  { id: 'SV-001', lines: [], supplierId: 's1', supplierName: 'Supplier A', voucherDate: '2026-08-22', fromDate: '2026-08-20', toDate: '2026-08-20', subtotal: 70000, ssclEnabled: true, sscl: 1750, vatEnabled: true, vat: 10763, grandTotal: 82513, paymentStatus: 'Paid' },
+  { id: 'SV-002', lines: [], supplierId: 's2', supplierName: 'Supplier B', voucherDate: '2026-08-23', fromDate: '2026-08-21', toDate: '2026-08-21', subtotal: 102000, ssclEnabled: true, sscl: 2550, vatEnabled: true, vat: 15683, grandTotal: 120233, paymentStatus: 'Unpaid' },
+  { id: 'SV-003', lines: [], supplierId: 's3', supplierName: 'Supplier C', voucherDate: '2026-08-24', fromDate: '2026-08-22', toDate: '2026-08-22', subtotal: 145000, ssclEnabled: true, sscl: 3625, vatEnabled: true, vat: 22300, grandTotal: 170925, paymentStatus: 'Paid' },
+  { id: 'SV-004', lines: [], supplierId: 's1', supplierName: 'Supplier A', voucherDate: '2026-08-25', fromDate: '2026-08-23', toDate: '2026-08-24', subtotal: 88000, ssclEnabled: true, sscl: 2200, vatEnabled: true, vat: 13530, grandTotal: 103730, paymentStatus: 'Unpaid' },
+  { id: 'SV-005', lines: [], supplierId: 's4', supplierName: 'Supplier D', voucherDate: '2026-08-26', fromDate: '2026-08-24', toDate: '2026-08-25', subtotal: 215000, ssclEnabled: true, sscl: 5375, vatEnabled: true, vat: 33056, grandTotal: 253431, paymentStatus: 'Paid' },
+  { id: 'SV-006', lines: [], supplierId: 's2', supplierName: 'Supplier B', voucherDate: '2026-08-27', fromDate: '2026-08-25', toDate: '2026-08-26', subtotal: 64000, ssclEnabled: true, sscl: 1600, vatEnabled: true, vat: 9840, grandTotal: 75440, paymentStatus: 'Unpaid' },
+  { id: 'SV-007', lines: [], supplierId: 's3', supplierName: 'Supplier C', voucherDate: '2026-08-28', fromDate: '2026-08-26', toDate: '2026-08-28', subtotal: 126000, ssclEnabled: true, sscl: 3150, vatEnabled: true, vat: 19373, grandTotal: 148523, paymentStatus: 'Paid' },
 ];
 
 let idCounter = 100;
