@@ -21,12 +21,12 @@ export function LedgerPage() {
     const result: Omit<LedgerLine, 'balance'>[] = [];
     const clientIds = [...new Set([...selectedInvoices.map((invoice) => invoice.clientId), ...paidVouchers.flatMap((voucher) => {
       const match = portEntries.find((entry) => entry.verificationStatus === 'Confirmed' && entry.supplierId === voucher.supplierId && entry.date >= voucher.fromDate && entry.date <= voucher.toDate);
-      return match?.customerId ?? [];
+      return match?.clientId ?? [];
     })])].filter((clientId) => !filters.account || filters.account === 'all' || clientId === filters.account);
     clientIds.forEach((clientId) => {
       const invoices = selectedInvoices.filter((invoice) => invoice.clientId === clientId);
       const client = clients.find((item) => item.id === clientId);
-      const vouchers = paidVouchers.filter((voucher) => portEntries.some((entry) => entry.verificationStatus === 'Confirmed' && entry.customerId === clientId && entry.supplierId === voucher.supplierId && entry.date >= voucher.fromDate && entry.date <= voucher.toDate));
+      const vouchers = paidVouchers.filter((voucher) => portEntries.some((entry) => entry.verificationStatus === 'Confirmed' && entry.clientId === clientId && entry.supplierId === voucher.supplierId && entry.date >= voucher.fromDate && entry.date <= voucher.toDate));
       if (!client) return;
       result.push({ accountName: client.name, ref: invoices.map((invoice) => invoice.id).join(', ') || '—', date: invoices[0]?.invoiceDate ?? vouchers[0]?.voucherDate ?? '', debit: invoices.reduce((total, invoice) => total + invoice.totalAmount, 0), credit: 0, clientRow: true });
       vouchers.sort((a, b) => a.voucherDate.localeCompare(b.voucherDate)).forEach((voucher) => {

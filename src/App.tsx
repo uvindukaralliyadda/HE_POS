@@ -43,18 +43,21 @@ export default function App() {
   };
 
   const renderContent = () => {
-    if (activeId === 'clients') return <ClientsPage role={role} />;
-    if (activeId === 'po-tracking') return role === 'Admin' ? <POTrackingPage /> : <AccessDeniedView />;
-    if (activeId === 'suppliers') return <SuppliersPage />;
-    if (activeId === 'settings') return <SettingsPage />;
-    if (activeId === 'vouchers') return <SupplierVouchersPage />;
-    if (activeId === 'invoices') return <InvoicesPage />;
+    if (activeId === 'clients') return role === 'Accountant' ? <AccessDeniedView /> : <ClientsPage role={role} />;
+    if (activeId === 'client-pos') return <ClientsPage role={role} initialTab="pos" />;
+    if (activeId === 'po-tracking') return role === 'Admin' || role === 'Accountant' ? <POTrackingPage /> : <AccessDeniedView />;
+    if (activeId === 'suppliers') return role === 'Accountant' ? <AccessDeniedView /> : <SuppliersPage role={role} />;
+    if (activeId === 'supplier-pos') return <SuppliersPage role={role === 'Accountant' ? 'Accountant' : role} initialTab="pos" />;
+    if (activeId === 'settings') return role === 'Admin' ? <SettingsPage /> : <AccessDeniedView />;
+    if (activeId === 'vouchers') return <SupplierVouchersPage role={role} />;
+    if (activeId === 'invoices') return <InvoicesPage role={role} />;
     if (activeId === 'users') return role === 'Admin' ? <UsersPage /> : <PlaceholderView title="users" />;
-    if (activeId === 'ledger') return role === 'Admin' || role === 'Office Staff' ? <LedgerPage /> : <PlaceholderView title="ledger" />;
-    if (activeId === 'port-ops') return <PortDashboard role={role} />;
+    if (activeId === 'ledger') return role === 'Admin' || role === 'Accountant' ? <LedgerPage /> : <AccessDeniedView />;
+    if (activeId === 'port-ops') return role === 'Accountant' ? <AccessDeniedView /> : <PortDashboard role={role} />;
     if (activeId !== 'dashboard') return <PlaceholderView title={activeId} />;
     switch (role) {
       case 'Admin':
+      case 'Accountant':
         return <AdminDashboard role={role} />;
       case 'Office Staff':
         return <OfficeDashboard role={role} />;
@@ -64,7 +67,7 @@ export default function App() {
   };
 
   return (
-    <AppProvider>
+    <AppProvider role={role}>
       <div className="flex min-h-screen bg-slate-50">
         <Sidebar
           role={role}

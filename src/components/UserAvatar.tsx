@@ -6,6 +6,7 @@ import portProfile from '@/PortStaff.jpg';
 export const PROFILE_IMAGES: Record<Role, string> = {
   Admin: adminProfile,
   'Office Staff': officeProfile,
+  Accountant: officeProfile,
   'Port Staff': portProfile,
 };
 

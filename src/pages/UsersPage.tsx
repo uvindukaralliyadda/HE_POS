@@ -7,7 +7,7 @@ import { showToast } from '@/components/Toast';
 import { UserAvatar } from '@/components/UserAvatar';
 
 type Role = SystemUser['role'];
-const roles: Role[] = ['Port Staff', 'Office Staff', 'Admin'];
+const roles: Role[] = ['Port Staff', 'Office Staff', 'Accountant', 'Admin'];
 const permissions = [
   ['Dashboard', 'View', 'View', 'Full Access'], ['Port Operations', 'Edit Assigned Fields', 'View/Edit', 'Full Access'], ['Supplier PO Column', 'No Edit', 'Edit', 'Edit'],
   ['Confirm Port Operation Changes', 'As Applicable', 'Yes', 'Yes'], ['Client POs', 'No', 'View/Edit', 'Full Access'], ['Supplier POs', 'No', 'View/Edit', 'Full Access'],

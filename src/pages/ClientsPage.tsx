@@ -7,15 +7,15 @@ import type { Role } from '@/data/mockData';
 
 type Tab = 'registration' | 'pos';
 
-export function ClientsPage({ role = 'Office Staff' }: { role?: Role }) {
-  const [tab, setTab] = useState<Tab>('registration');
+export function ClientsPage({ role = 'Office Staff', initialTab = 'registration' }: { role?: Role; initialTab?: Tab }) {
+  const [tab, setTab] = useState<Tab>(initialTab);
 
   return (
     <div className="space-y-5">
       <DashboardHeader title="Clients" subtitle="Manage clients and their purchase orders" />
 
       {/* Tab navigation */}
-      <div className="flex gap-1 border-b border-slate-200">
+      <div className={`flex gap-1 border-b border-slate-200 ${role === 'Accountant' ? 'hidden' : ''}`}>
         <TabButton active={tab === 'registration'} onClick={() => setTab('registration')} icon="UserPlus">
           Client Registration
         </TabButton>

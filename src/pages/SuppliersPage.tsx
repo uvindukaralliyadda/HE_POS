@@ -6,14 +6,14 @@ import { SupplierPOsTab } from './SupplierPOsTab';
 
 type Tab = 'registration' | 'pos';
 
-export function SuppliersPage() {
-  const [tab, setTab] = useState<Tab>('registration');
+export function SuppliersPage({ role = 'Office Staff', initialTab = 'registration' }: { role?: 'Admin' | 'Office Staff' | 'Accountant'; initialTab?: Tab }) {
+  const [tab, setTab] = useState<Tab>(initialTab);
 
   return (
     <div className="space-y-5">
       <DashboardHeader title="Suppliers" subtitle="Manage suppliers and their purchase orders" />
 
-      <div className="flex gap-1 border-b border-slate-200">
+      <div className={`flex gap-1 border-b border-slate-200 ${role === 'Accountant' ? 'hidden' : ''}`}>
         <TabButton active={tab === 'registration'} onClick={() => setTab('registration')} icon="Warehouse">
           Supplier Registration
         </TabButton>

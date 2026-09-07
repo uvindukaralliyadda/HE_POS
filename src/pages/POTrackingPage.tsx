@@ -53,13 +53,13 @@ export function POTrackingPage() {
 
 function buildTracking(po: ClientPO, clientName: string, allEntries: PortEntry[], allInvoices: ReturnType<typeof useApp>['clientInvoices'], supplierPOs: SupplierPO[], allVouchers: ReturnType<typeof useApp>['supplierVouchers'], filters: { from: string; to: string; material: string }): TrackingRecord {
   const dateInRange = (date: string) => (!filters.from || date >= filters.from) && (!filters.to || date <= filters.to);
-  const entries = allEntries.filter((entry) => entry.verificationStatus === 'Confirmed' && entry.clientPOId === po.id && entry.customerId === po.clientId && entry.site === po.site && dateInRange(entry.date) && (!filters.material || entry.material === filters.material));
+  const entries = allEntries.filter((entry) => entry.verificationStatus === 'Confirmed' && entry.clientPOId === po.id && entry.clientId === po.clientId && entry.site === po.site && dateInRange(entry.date) && (!filters.material || entry.material === filters.material));
   const materials = po.items.filter((item) => !filters.material || item.description === filters.material).map((item) => {
     const fulfilled = entries.filter((entry) => entry.material === item.description).reduce((sum, entry) => sum + (entry.netWeight ?? 0), 0);
     const remaining = Math.max(0, item.quantity - fulfilled);
     return { description: item.description, required: item.quantity, fulfilled, remaining, percent: item.quantity ? fulfilled / item.quantity * 100 : 0 };
   });
-  const poEntries = allEntries.filter((entry) => entry.verificationStatus === 'Confirmed' && entry.clientPOId === po.id && entry.customerId === po.clientId && entry.site === po.site && dateInRange(entry.date));
+  const poEntries = allEntries.filter((entry) => entry.verificationStatus === 'Confirmed' && entry.clientPOId === po.id && entry.clientId === po.clientId && entry.site === po.site && dateInRange(entry.date));
   const invoices = allInvoices.filter((invoice) => invoice.clientId === po.clientId && invoice.site === po.site && dateInRange(invoice.invoiceDate));
   const entrySupplierIds = new Set(poEntries.flatMap((entry) => [entry.supplierId, ...entry.supplierAssignments.map((assignment) => assignment.supplierId)]).filter(Boolean));
   const vouchers = allVouchers.filter((voucher) => entrySupplierIds.has(voucher.supplierId) && dateInRange(voucher.voucherDate) && voucher.fromDate <= po.date || entrySupplierIds.has(voucher.supplierId) && dateInRange(voucher.voucherDate) && voucher.fromDate >= po.date);

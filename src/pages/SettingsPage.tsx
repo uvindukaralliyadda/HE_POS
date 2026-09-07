@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '@/data/appState';
+import type { MaterialUnit } from '@/data/appState';
 import { showToast } from '@/components/Toast';
 import { Card, CardHeader, Badge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
@@ -22,22 +23,26 @@ function CompanyInformationSection() {
   const save = (event: React.FormEvent) => {
     event.preventDefault();
     if (!form.name.trim()) return;
-    setCompanyInfo({ ...form, name: form.name.trim(), tin: form.tin.trim(), address: form.address.trim(), telephone: form.telephone.trim() });
+    setCompanyInfo({ ...form, name: form.name.trim(), tin: form.tin.trim(), vatNumber: form.vatNumber.trim(), stampDRN: form.stampDRN.trim(), ssclNumber: form.ssclNumber.trim(), address: form.address.trim(), telephone: form.telephone.trim() });
     showToast('Company information updated successfully');
   };
-  return <Card className="animate-fade-up"><CardHeader title="Company Information" /><form onSubmit={save} className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2"><Field label="Company Name" required><input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className="form-input" /></Field><Field label="TIN"><input value={form.tin} onChange={(event) => setForm({ ...form, tin: event.target.value })} className="form-input" /></Field><Field label="Address"><textarea value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} rows={2} className="form-input resize-none sm:col-span-2" /></Field><Field label="Telephone Number"><input type="tel" value={form.telephone} onChange={(event) => setForm({ ...form, telephone: event.target.value })} className="form-input" /></Field><div className="flex justify-end sm:col-span-2"><button type="submit" className="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white">Save Company Information</button></div></form></Card>;
+  return <Card className="animate-fade-up"><CardHeader title="Company Information" /><form onSubmit={save} className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2"><Field label="Company Name" required><input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className="form-input" /></Field><Field label="TIN"><input value={form.tin} onChange={(event) => setForm({ ...form, tin: event.target.value })} className="form-input" /></Field><Field label="VAT No."><input value={form.vatNumber} onChange={(event) => setForm({ ...form, vatNumber: event.target.value })} className="form-input" /></Field><Field label="SSCL No."><input value={form.ssclNumber} onChange={(event) => setForm({ ...form, ssclNumber: event.target.value })} className="form-input" /></Field><Field label="Stamp D.R.N"><input value={form.stampDRN} onChange={(event) => setForm({ ...form, stampDRN: event.target.value })} className="form-input" /></Field><Field label="Telephone Number"><input type="tel" value={form.telephone} onChange={(event) => setForm({ ...form, telephone: event.target.value })} className="form-input" /></Field><Field label="Address"><textarea value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} rows={2} className="form-input resize-none sm:col-span-2" /></Field><div className="flex justify-end sm:col-span-2"><button type="submit" className="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white">Save Company Information</button></div></form></Card>;
 }
 
 /* ---------- Materials Management ---------- */
 
-const UNITS = ['ton'];
+const UNITS: { value: MaterialUnit; label: string }[] = [
+  { value: 'ton', label: 'Ton' },
+  { value: 'Cube', label: 'Cube' },
+];
 
 function MaterialsSection() {
   const { materials, addMaterial, updateMaterial } = useApp();
   const [name, setName] = useState('');
-  const [unit, setUnit] = useState('ton');
+  const [unit, setUnit] = useState<MaterialUnit>('ton');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [editUnit, setEditUnit] = useState<MaterialUnit>('ton');
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,14 +52,15 @@ function MaterialsSection() {
     setName('');
   };
 
-  const startEdit = (id: string, currentName: string) => {
+  const startEdit = (id: string, currentName: string, currentUnit: MaterialUnit) => {
     setEditingId(id);
     setEditName(currentName);
+    setEditUnit(currentUnit);
   };
 
   const saveEdit = (id: string) => {
     if (editName.trim()) {
-      updateMaterial(id, { name: editName.trim() });
+      updateMaterial(id, { name: editName.trim(), unit: editUnit });
       showToast('Material updated successfully');
     }
     setEditingId(null);
@@ -82,9 +88,9 @@ function MaterialsSection() {
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-slate-600">Unit</label>
               <select value={unit} onChange={(e) => setUnit(e.target.value)} className="form-select">
-                {UNITS.map((u) => (
-                  <option key={u} value={u}>
-                    {u}
+                {UNITS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
@@ -140,7 +146,19 @@ function MaterialsSection() {
                         </div>
                       )}
                     </td>
-                    <td className="px-5 py-3 text-slate-500">{m.unit}</td>
+                    <td className="px-5 py-3 text-slate-500">
+                      {editingId === m.id ? (
+                        <select value={editUnit} onChange={(e) => setEditUnit(e.target.value as MaterialUnit)} className="form-select">
+                          {UNITS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        m.unit === 'ton' ? 'Ton' : m.unit
+                      )}
+                    </td>
                     <td className="px-5 py-3">
                       <button onClick={() => updateMaterial(m.id, { active: !m.active })}>
                         <Badge tone={m.active ? 'success' : 'slate'}>{m.active ? 'Active' : 'Inactive'}</Badge>
@@ -157,7 +175,7 @@ function MaterialsSection() {
                           </button>
                         ) : (
                           <button
-                            onClick={() => startEdit(m.id, m.name)}
+                            onClick={() => startEdit(m.id, m.name, m.unit)}
                             className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
                           >
                             <Icon name="Pencil" className="h-4 w-4" />

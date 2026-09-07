@@ -32,7 +32,7 @@ export function PortDashboard({ role = "Port Staff" }: { role?: Role }) {
     updatePortEntry,
     deletePortEntry,
   } = useApp();
-  const [form, setForm] = useState({ site: "", date: "", material: "" });
+  const [form, setForm] = useState({ clientId: "", site: "", date: "", material: "" });
   const [filters, setFilters] = useState({
     site: "",
     material: "",
@@ -56,7 +56,7 @@ export function PortDashboard({ role = "Port Staff" }: { role?: Role }) {
 
   const createTable = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!form.site.trim() || !form.date || !form.material) return;
+    if (!form.clientId || !form.site.trim() || !form.date || !form.material) return;
     const existing = portTables.find(
       (table) =>
         table.site.toLowerCase() === form.site.trim().toLowerCase() &&
@@ -68,11 +68,12 @@ export function PortDashboard({ role = "Port Staff" }: { role?: Role }) {
       return;
     }
     addPortTable({
+      clientId: form.clientId,
       site: form.site.trim(),
       date: form.date,
       material: form.material,
     });
-    setForm({ site: "", date: "", material: "" });
+    setForm({ clientId: "", site: "", date: "", material: "" });
     showToast("Port entry table created successfully");
   };
 
@@ -113,8 +114,27 @@ export function PortDashboard({ role = "Port Staff" }: { role?: Role }) {
         <CardHeader title="Create Port Entry Table" />
         <form
           onSubmit={createTable}
-          className="grid grid-cols-1 gap-3 p-5 sm:grid-cols-[1.4fr_1fr_1fr_auto] sm:items-end"
+          className="grid grid-cols-1 gap-3 p-5 sm:grid-cols-[1.4fr_1.4fr_1fr_1fr_auto] sm:items-end"
         >
+          <Field label="Client">
+            <select
+              required
+              value={form.clientId}
+              onChange={(event) =>
+                setForm({ ...form, clientId: event.target.value })
+              }
+              className="form-select min-h-11"
+            >
+              <option value="">Select client...</option>
+              {clients
+                .filter((client) => client.status !== "Inactive")
+                .map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.name}
+                  </option>
+                ))}
+            </select>
+          </Field>
           <Field label="Site">
             <input
               value={form.site}
@@ -413,6 +433,7 @@ function TableView({
       billNo: "",
       grnNumber: "",
       supplierId: "",
+      clientId: table.clientId ?? entries[0]?.clientId ?? entries[0]?.customerId ?? "",
       customerId: "",
       state: "Both",
       supplierAssignments: [{ supplierId: "", supplierPOId: "", state: "Both" }],
@@ -479,6 +500,7 @@ function TableView({
             <thead>
               <tr className="border-b border-slate-100 text-left text-xs text-slate-400">
                 <th className="px-5 py-3 font-semibold">Truck Number</th>
+                <th className="px-5 py-3 font-semibold">Client</th>
                 <th className="px-5 py-3 text-right font-semibold">
                   Gross Weight (Ton)
                 </th>
@@ -603,13 +625,15 @@ function PortEntryForm({
   const reviewer = reviewerRole(role);
   const [draft, setDraft] = useState(() => ({
     ...entry,
+    clientId: entry.clientId || entry.customerId,
     supplierAssignments: entry.supplierAssignments.length
       ? entry.supplierAssignments
       : [{ supplierId: entry.supplierId, supplierPOId: entry.supplierPOId, state: entry.state }],
   }));
   const [error, setError] = useState("");
   const truckOptions = [...new Set(suppliers.flatMap((supplier) => supplier.truckNumbers))];
-  const clientOptions = clientPOs.filter((po) => po.clientId === draft.customerId);
+  const activeClients = clients.filter((client) => client.status !== "Inactive");
+  const clientOptions = clientPOs.filter((po) => po.clientId === draft.clientId);
   const assignments = draft.supplierAssignments;
   const syncAssignments = (nextAssignments: PortEntry["supplierAssignments"], state: PortEntry["state"] = draft.state) => {
     const primary = nextAssignments[0] ?? { supplierId: "", supplierPOId: "", state };
@@ -641,8 +665,8 @@ function PortEntryForm({
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     const invalidWeights = draft.grossWeight !== null && draft.tareWeight !== null && draft.tareWeight > draft.grossWeight;
-    if (!draft.truckNumber || assignments.some((assignment) => !assignment.supplierId) || !draft.billNo.trim() || !draft.grnNumber.trim() || draft.grossWeight === null || draft.tareWeight === null || invalidWeights || (reviewer && (!draft.customerId || !draft.clientPOId || assignments.some((assignment) => !assignment.supplierPOId)))) {
-      setError(invalidWeights ? "Tare weight cannot be greater than gross weight." : reviewer && (!draft.customerId || !draft.clientPOId || assignments.some((assignment) => !assignment.supplierPOId)) ? "Customer, Client PO and Supplier PO must be selected before saving." : "Truck, supplier, weights, bill number and GRN number are required.");
+    if (!draft.clientId || !draft.truckNumber || assignments.some((assignment) => !assignment.supplierId) || !draft.billNo.trim() || !draft.grnNumber.trim() || draft.grossWeight === null || draft.tareWeight === null || invalidWeights || (reviewer && (!draft.clientPOId || assignments.some((assignment) => !assignment.supplierPOId)))) {
+      setError(invalidWeights ? "Tare weight cannot be greater than gross weight." : !draft.clientId ? "Client must be selected before saving." : reviewer && (!draft.clientPOId || assignments.some((assignment) => !assignment.supplierPOId)) ? "Client PO and Supplier PO must be selected before saving." : "Truck, supplier, weights, bill number and GRN number are required.");
       return;
     }
     onSave(draft);
@@ -650,6 +674,7 @@ function PortEntryForm({
   return (
     <Modal title={entry.id ? "Edit Port Entry" : "Add Port Entry"} onClose={onCancel}>
       <form onSubmit={submit} className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2">
+        <Field label="Client"><select required value={draft.clientId} onChange={(event) => update({ clientId: event.target.value, customerId: event.target.value, clientPOId: "" })} className="form-select"><option value="">Select client...</option>{activeClients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}</select></Field>
         <Field label="Truck Number"><select value={draft.truckNumber} onChange={(event) => update({ truckNumber: event.target.value })} className="form-select"><option value="">Select truck...</option>{truckOptions.map((truckNumber) => <option key={truckNumber} value={truckNumber}>{truckNumber}</option>)}</select></Field>
         <Field label="Entry State"><select value={draft.state} onChange={(event) => updateState(event.target.value as PortEntry["state"])} className="form-select"><option>Transport</option><option>Material</option><option>Both</option></select></Field>
         <div className="sm:col-span-2 rounded-lg border border-slate-200 bg-slate-50 p-4"><div className="mb-3 text-sm font-bold text-slate-700">Supplier Assignments</div><div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{assignments.map((assignment, index) => { const supplierOptions = supplierPOs.filter((po) => po.supplierId === assignment.supplierId); return <div key={index} className="rounded-lg border border-slate-200 bg-white p-3"><div className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Supplier {index + 1}</div><Field label="Supplier Name"><select value={assignment.supplierId} onChange={(event) => updateAssignment(index, { supplierId: event.target.value, supplierPOId: "" })} className="form-select"><option value="">Select supplier...</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></Field><div className="mt-3"><Field label="Supplier PO"><select value={assignment.supplierPOId} disabled={!reviewer || !assignment.supplierId} onChange={(event) => updateAssignment(index, { supplierPOId: event.target.value })} className="form-select"><option value="">Select Supplier PO...</option>{supplierOptions.map((po) => <option key={po.id} value={po.id}>{po.poNumber}</option>)}</select></Field></div><div className="mt-3"><Field label="State"><select value={assignment.state} onChange={(event) => updateAssignment(index, { state: event.target.value as PortEntry["state"] })} className="form-select">{STATES.map((state) => <option key={state} value={state}>{state}</option>)}</select></Field></div></div>; })}</div></div>
@@ -657,7 +682,7 @@ function PortEntryForm({
         <Field label="GRN Number"><input value={draft.grnNumber} onChange={(event) => update({ grnNumber: event.target.value })} className="form-input" /></Field>
         <Field label="Gross Weight (Ton)"><input type="number" min="0" step="0.01" value={draft.grossWeight ?? ""} onChange={(event) => updateWeight("grossWeight", event.target.value)} className="form-input" /></Field>
         <Field label="Tare Weight (Ton)"><input type="number" min="0" step="0.01" value={draft.tareWeight ?? ""} onChange={(event) => updateWeight("tareWeight", event.target.value)} className="form-input" /></Field>
-        {reviewer && <><Field label="Customer Name"><select value={draft.customerId} onChange={(event) => update({ customerId: event.target.value, clientPOId: "" })} className="form-select"><option value="">Select customer...</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}</select></Field><Field label="Client PO"><select value={draft.clientPOId} disabled={!draft.customerId} onChange={(event) => update({ clientPOId: event.target.value })} className="form-select"><option value="">Select Client PO...</option>{clientOptions.map((po) => <option key={po.id} value={po.id}>{po.poNumber}</option>)}</select></Field></>}
+        <Field label="Client PO"><select value={draft.clientPOId} disabled={!draft.clientId} onChange={(event) => update({ clientPOId: event.target.value })} className="form-select"><option value="">Select Client PO...</option>{clientOptions.map((po) => <option key={po.id} value={po.id}>{po.poNumber}</option>)}</select></Field>
         {error && <p className="sm:col-span-2 text-sm text-rose-600">{error}</p>}
         <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 sm:col-span-2"><button type="button" onClick={onCancel} className="rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100">Cancel</button><button type="submit" className="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white">{entry.id ? "Save Changes" : "Add Entry"}</button></div>
       </form>
@@ -706,8 +731,9 @@ function EntryRow({
     .filter(Boolean)
     .join(" / ");
   const customer = clients.find((item) => item.id === entry.customerId);
+  const client = clients.find((item) => item.id === entry.clientId) ?? customer;
   const clientOptions = clientPOs.filter(
-    (po) => po.clientId === entry.customerId,
+    (po) => po.clientId === entry.clientId,
   );
   const supplierOptions = supplierPOs.filter(
     (po) => !entry.supplierId || po.supplierId === entry.supplierId,
@@ -739,13 +765,15 @@ function EntryRow({
       entry.grossWeight === null ||
       entry.tareWeight === null ||
       invalid ||
-      (reviewer && (!entry.customerId || !entry.clientPOId))
+      (!entry.clientId || (reviewer && !entry.clientPOId))
     ) {
       setError(
         invalid
           ? "Tare weight cannot be greater than gross weight."
-          : reviewer && (!entry.customerId || !entry.clientPOId)
-            ? "Customer and Client PO must be selected before saving."
+          : !entry.clientId
+            ? "Client must be selected before saving."
+            : reviewer && !entry.clientPOId
+              ? "Client PO must be selected before saving."
             : "Truck, weights, bill number and GRN number are required.",
       );
       return;
@@ -784,6 +812,9 @@ function EntryRow({
         ) : (
           entry.truckNumber || "—"
         )}
+      </td>
+      <td className="min-w-48 px-5 py-3">
+        <div className="truncate font-semibold text-slate-700" title={client?.name ?? "—"}>{client?.name ?? "—"}</div>
       </td>
       <td className="min-w-36 px-5 py-3">
         {editing ? (
@@ -852,14 +883,14 @@ function EntryRow({
           <td className="min-w-48 px-5 py-3">
             {editing ? (
               <select
-                value={entry.customerId}
+                value={entry.clientId}
                 onChange={(event) =>
-                  update({ customerId: event.target.value, clientPOId: "" })
+                  update({ clientId: event.target.value, customerId: event.target.value, clientPOId: "" })
                 }
                 className="form-select min-h-10 text-xs"
               >
                 <option value="">Select customer...</option>
-                {clients.map((client) => (
+                {clients.filter((client) => client.status !== "Inactive").map((client) => (
                   <option key={client.id} value={client.id}>
                     {client.name}
                   </option>
@@ -873,7 +904,7 @@ function EntryRow({
             {editing ? (
               <select
                 value={entry.clientPOId}
-                disabled={!entry.customerId}
+                disabled={!entry.clientId}
                 onChange={(event) => update({ clientPOId: event.target.value })}
                 className="form-select min-h-10 text-xs"
               >

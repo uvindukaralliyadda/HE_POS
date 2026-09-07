@@ -4,7 +4,7 @@ import type { Role } from '@/data/mockData';
 import { ROLE_LABELS } from '@/data/mockData';
 import { UserAvatar } from '@/components/UserAvatar';
 
-const ROLES: Role[] = ['Admin', 'Office Staff', 'Port Staff'];
+const ROLES: Role[] = ['Admin', 'Office Staff', 'Accountant', 'Port Staff'];
 
 export function RoleDropdown({ role, onChange }: { role: Role; onChange: (r: Role) => void }) {
   const [open, setOpen] = useState(false);

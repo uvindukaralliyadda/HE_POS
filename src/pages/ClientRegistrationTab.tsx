@@ -4,7 +4,7 @@ import { showToast } from '@/components/Toast';
 import { Card, CardHeader, Badge, Modal } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 
-const EMPTY = { name: '', tin: '', address: '', phone: '' };
+const EMPTY = { name: '', tin: '', vatNumber: '', address: '', phone: '' };
 
 export function ClientRegistrationTab() {
   const { clients, clientPOs, addClient, updateClient } = useApp();
@@ -47,6 +47,9 @@ export function ClientRegistrationTab() {
                 className="form-input"
               />
             </Field>
+            <Field label="Client VAT No.">
+              <input type="text" value={form.vatNumber} onChange={(e) => setForm({ ...form, vatNumber: e.target.value })} placeholder="e.g. VAT-123456" className="form-input" />
+            </Field>
             <Field label="Client Address">
               <textarea
                 value={form.address}
@@ -86,6 +89,7 @@ export function ClientRegistrationTab() {
                 <tr className="border-b border-slate-100 text-left text-xs text-slate-400">
                   <th className="px-5 py-3 font-semibold">Client Name</th>
                   <th className="px-5 py-3 font-semibold">TIN</th>
+                  <th className="px-5 py-3 font-semibold">VAT No.</th>
                   <th className="px-5 py-3 font-semibold">Phone</th>
                   <th className="hidden px-5 py-3 font-semibold lg:table-cell">Address</th>
                   <th className="px-5 py-3 text-center font-semibold">POs</th>
@@ -108,6 +112,7 @@ export function ClientRegistrationTab() {
                       </div>
                     </td>
                     <td className="px-5 py-3 text-slate-500">{c.tin}</td>
+                    <td className="px-5 py-3 text-slate-500">{c.vatNumber || '—'}</td>
                     <td className="px-5 py-3 text-slate-500">{c.phone}</td>
                     <td className="hidden px-5 py-3 text-slate-500 lg:table-cell">{c.address}</td>
                     <td className="px-5 py-3 text-center">
@@ -128,9 +133,9 @@ export function ClientRegistrationTab() {
 }
 
 function ClientEditModal({ client, onCancel, onSave }: { client: Client; onCancel: () => void; onSave: (patch: Omit<Client, 'id'>) => void }) {
-  const [form, setForm] = useState<Omit<Client, 'id'>>({ name: client.name, tin: client.tin, address: client.address, phone: client.phone });
+  const [form, setForm] = useState<Omit<Client, 'id'>>({ name: client.name, tin: client.tin, vatNumber: client.vatNumber ?? '', address: client.address, phone: client.phone });
   const submit = (event: React.FormEvent) => { event.preventDefault(); if (!form.name.trim() || !form.tin.trim()) return; onSave({ ...form, name: form.name.trim(), tin: form.tin.trim() }); };
-  return <Modal title="Edit Client" onClose={onCancel}><form onSubmit={submit} className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2"><Field label="Client Name" required><input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className="form-input" /></Field><Field label="Client TIN" required><input value={form.tin} onChange={(event) => setForm({ ...form, tin: event.target.value })} className="form-input" /></Field><Field label="Client Address"><textarea value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} rows={2} className="form-input resize-none sm:col-span-2" /></Field><Field label="Client Phone Number"><input type="tel" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} className="form-input" /></Field><div className="flex justify-end gap-2 border-t border-slate-100 pt-4 sm:col-span-2"><button type="button" onClick={onCancel} className="rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100">Cancel</button><button type="submit" className="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white">Save Changes</button></div></form></Modal>;
+  return <Modal title="Edit Client" onClose={onCancel}><form onSubmit={submit} className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2"><Field label="Client Name" required><input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className="form-input" /></Field><Field label="Client TIN" required><input value={form.tin} onChange={(event) => setForm({ ...form, tin: event.target.value })} className="form-input" /></Field><Field label="Client VAT No."><input value={form.vatNumber} onChange={(event) => setForm({ ...form, vatNumber: event.target.value })} className="form-input" /></Field><Field label="Client Phone Number"><input type="tel" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} className="form-input" /></Field><Field label="Client Address"><textarea value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} rows={2} className="form-input resize-none sm:col-span-2" /></Field><div className="flex justify-end gap-2 border-t border-slate-100 pt-4 sm:col-span-2"><button type="button" onClick={onCancel} className="rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100">Cancel</button><button type="submit" className="rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white">Save Changes</button></div></form></Modal>;
 }
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {

@@ -1,4 +1,4 @@
-export type Role = 'Admin' | 'Office Staff' | 'Port Staff';
+export type Role = 'Admin' | 'Office Staff' | 'Accountant' | 'Port Staff';
 
 export type NavItem = {
   id: string;
@@ -10,18 +10,23 @@ export type NavItem = {
 export const ROLE_LABELS: Record<Role, { name: string; sub: string }> = {
   Admin: { name: 'Admin User', sub: 'Admin' },
   'Office Staff': { name: 'Office User', sub: 'Office Staff' },
+  Accountant: { name: 'Accountant User', sub: 'Accountant' },
   'Port Staff': { name: 'Port User', sub: 'Port Staff' },
 };
 
 export const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard', roles: ['Admin', 'Office Staff', 'Port Staff'] },
   { id: 'clients', label: 'Clients', icon: 'Building2', roles: ['Admin', 'Office Staff'] },
-  { id: 'po-tracking', label: 'PO Tracking', icon: 'ChartNoAxesCombined', roles: ['Admin'] },
+  { id: 'client-pos', label: 'Client POs', icon: 'FileText', roles: ['Admin', 'Office Staff', 'Accountant'] },
+  { id: 'po-tracking', label: 'PO Tracking', icon: 'ChartNoAxesCombined', roles: ['Admin', 'Accountant'] },
   { id: 'suppliers', label: 'Suppliers', icon: 'Truck', roles: ['Admin', 'Office Staff'] },
+  { id: 'supplier-pos', label: 'Supplier POs', icon: 'FileText', roles: ['Admin', 'Office Staff', 'Accountant'] },
   { id: 'port-ops', label: 'Port Operations', icon: 'Ship', roles: ['Admin', 'Office Staff', 'Port Staff'] },
-  { id: 'invoices', label: 'Invoices', icon: 'ReceiptText', roles: ['Admin', 'Office Staff'] },
-  { id: 'vouchers', label: 'Supplier Vouchers', icon: 'Ticket', roles: ['Admin', 'Office Staff'] },
-  { id: 'ledger', label: 'General Ledger', icon: 'BookOpen', roles: ['Admin', 'Office Staff'] },
+  { id: 'completed-entries', label: 'Completed Entries', icon: 'ClipboardCheck', roles: ['Admin', 'Office Staff', 'Accountant', 'Port Staff'] },
+  { id: 'invoices', label: 'Invoices', icon: 'ReceiptText', roles: ['Admin', 'Office Staff', 'Accountant'] },
+  { id: 'vouchers', label: 'Supplier Vouchers', icon: 'Ticket', roles: ['Admin', 'Office Staff', 'Accountant'] },
+  { id: 'ledger', label: 'General Ledger', icon: 'BookOpen', roles: ['Admin', 'Accountant'] },
+  { id: 'notifications', label: 'Notifications', icon: 'Bell', roles: ['Admin', 'Office Staff', 'Accountant', 'Port Staff'] },
   { id: 'users', label: 'Users & Access', icon: 'Users', roles: ['Admin'] },
   { id: 'settings', label: 'Settings', icon: 'Settings', roles: ['Admin'] },
 ];
